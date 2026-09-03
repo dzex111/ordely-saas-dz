@@ -41,9 +41,6 @@ export default async function Landing() {
       <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(50% 40% at 50% 0%, #ff5a1f22, transparent 70%)" }} />
         <div className="relative mx-auto max-w-5xl px-6 pb-20 pt-24 text-center md:pt-32">
-          <span className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3.5 py-1.5 text-xs font-medium text-zinc-600 shadow-sm animate-fade-up">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Paiement à la livraison · 58 wilayas · Supabase-ready
-          </span>
           <h1 className="mx-auto mt-8 max-w-4xl text-5xl font-semibold leading-[1.02] tracking-[-0.03em] md:text-7xl animate-fade-up" style={{ animationDelay: "80ms" }}>
             Chaque marchand paraît <span className="text-brand">premium</span> en 10 minutes.
           </h1>
