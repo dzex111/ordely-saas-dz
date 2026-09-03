@@ -20,7 +20,7 @@ export function Sidebar({ storeName, storeHref, pendingCount, plan }: { storeNam
   return (
     <aside className="flex h-full w-full flex-col md:w-60">
       <div className="px-4 pb-2 pt-5">
-        <Link href="/" className="text-sm font-bold tracking-tight">ORDELY</Link>
+        <Link href="/" aria-label="ORDELY - home"><img src="/logo.svg" alt="ORDELY" className="h-5 w-auto" /></Link>
         <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-3 shadow-sm">
           <p className="truncate text-sm font-semibold">{storeName}</p>
           <div className="mt-1 flex items-center justify-between">
