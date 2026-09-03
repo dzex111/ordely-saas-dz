@@ -11,7 +11,7 @@ export default async function OnboardingPage() {
     <div className="min-h-dvh bg-paper">
       <header className="border-b border-zinc-200 bg-white/70 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <img src="/logo.svg" alt="ORDELY" className="h-5 w-auto" />
+          <img src="/logo.svg" alt="ORDELY" className="h-6 w-auto" />
           <span className="text-xs text-zinc-500">{user.email}</span>
         </div>
       </header>

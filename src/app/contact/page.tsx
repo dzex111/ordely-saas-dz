@@ -11,7 +11,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
     <div className="min-h-dvh bg-paper text-ink">
       <header className="border-b border-zinc-200/60 bg-paper/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
-          <Link href="/" aria-label="ORDELY - home"><img src="/logo.svg" alt="ORDELY" className="h-6 w-auto" /></Link>
+          <Link href="/" aria-label="ORDELY - home"><img src="/logo.svg" alt="ORDELY" className="h-8 w-auto" /></Link>
           <Link href="/dashboard" className="text-sm font-medium text-zinc-600 hover:text-ink">Tableau de bord</Link>
         </div>
       </header>

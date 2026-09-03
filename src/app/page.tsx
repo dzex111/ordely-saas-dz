@@ -18,7 +18,7 @@ export default async function Landing() {
     <div className="bg-paper text-ink">
       <header className="sticky top-0 z-40 border-b border-zinc-200/60 bg-paper/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Link href="/" aria-label="ORDELY - home"><img src="/logo.svg" alt="ORDELY" className="h-6 w-auto" /></Link>
+          <Link href="/" aria-label="ORDELY - home"><img src="/logo.svg" alt="ORDELY" className="h-9 w-auto" /></Link>
           <nav className="hidden items-center gap-8 text-sm text-zinc-600 md:flex">
             <a href="#templates" className="hover:text-ink">Templates</a>
             <a href="#how" className="hover:text-ink">Comment ça marche</a>
@@ -141,7 +141,7 @@ export default async function Landing() {
 
       <footer className="border-t border-zinc-200">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-10 text-sm text-zinc-500 md:flex-row">
-          <p className="flex items-center gap-2"><img src="/logo.svg" alt="ORDELY" className="h-4 w-auto" /> · Le Shopify du COD, né à Alger.</p>
+          <p className="flex items-center gap-2"><img src="/logo.svg" alt="ORDELY" className="h-5 w-auto" /> · Le Shopify du COD, né à Alger.</p>
           <div className="flex gap-6"><a href="#templates">Templates</a><a href="#pricing">Tarifs</a><Link href="/login">Connexion</Link></div>
         </div>
       </footer>
