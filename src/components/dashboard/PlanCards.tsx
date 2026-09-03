@@ -14,27 +14,29 @@ export function PlanCards({ current, userName, userContact }: { current: PlanId;
   const router = useRouter();
   const [selected, setSelected] = useState<PlanId | null>(null);
   const [countdown, setCountdown] = useState(REDIRECT_SECONDS);
+  const [touched, setTouched] = useState(false);
   const [state, action, pending] = useActionState(createContactRequestAction, null);
 
   useEffect(() => {
     if (!selected) return;
     setCountdown(REDIRECT_SECONDS);
+    setTouched(false);
   }, [selected]);
 
   useEffect(() => {
-    if (!selected || state?.success) return;
+    if (!selected || state?.success || touched) return;
     const timer = setInterval(() => {
       setCountdown((c) => {
         if (c <= 1) {
           clearInterval(timer);
-          router.push(`/contact?plan=${selected}`);
+          router.push(`/contact?plan=${selected}&source=plan`);
           return 0;
         }
         return c - 1;
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [selected, state?.success, router]);
+  }, [selected, state?.success, touched, router]);
 
   const plan = selected ? getPlan(selected) : null;
 
@@ -86,7 +88,7 @@ export function PlanCards({ current, userName, userContact }: { current: PlanId;
                 Demande envoyée. L’admin vous contactera pour activer le plan {plan.name} — rien n’a changé pour l’instant.
               </p>
             ) : (
-              <form action={action} className="mt-4 space-y-3">
+              <form action={action} className="mt-4 space-y-3" onFocus={() => setTouched(true)} onChange={() => setTouched(true)}>
                 <p className="text-sm leading-relaxed text-zinc-600">
                   Envoyez une demande d’abonnement — votre plan actuel reste actif, <span className="font-medium text-zinc-900">rien ne change sans validation manuelle de l’admin.</span>
                 </p>
@@ -113,9 +115,9 @@ export function PlanCards({ current, userName, userContact }: { current: PlanId;
                 style={{ width: `${(countdown / REDIRECT_SECONDS) * 100}%` }}
               />
             </div>
-            <p className="mt-2 text-xs text-zinc-500">Redirection vers le contact dans {countdown} s…</p>
+            <p className="mt-2 text-xs text-zinc-500">{touched ? "Remplissez le formulaire à votre rythme — aucune redirection." : `Redirection vers le contact dans ${countdown} s…`}</p>
             <div className="mt-4 flex gap-2">
-              <button type="button" onClick={() => router.push(`/contact?plan=${plan.id}`)} className="db-btn flex-1">
+              <button type="button" onClick={() => router.push(`/contact?plan=${plan.id}&source=plan`)} className="db-btn flex-1">
                 Aller au contact
               </button>
               <button type="button" onClick={() => setSelected(null)} className="db-btn-secondary">
