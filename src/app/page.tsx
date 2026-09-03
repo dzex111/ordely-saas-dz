@@ -6,14 +6,13 @@ import { asc, eq, like } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth";
 import { TEMPLATES } from "@/lib/templates";
 import { PLANS } from "@/lib/plans";
-import { formatDZD, storeUrl } from "@/lib/utils";
-import { TemplatePreview } from "@/components/dashboard/TemplatePreview";
+import { formatDZD } from "@/lib/utils";
+import { TemplateGrid } from "@/components/store/TemplateGrid";
 
 export const dynamic = "force-dynamic";
 
 export default async function Landing() {
   const [user, demos] = await Promise.all([getCurrentUser(), db.select({ subdomain: stores.subdomain, template: stores.template, name: stores.name }).from(stores).innerJoin(users, eq(users.id, stores.ownerId)).where(like(users.email, "demo%@ordely.app")).orderBy(asc(stores.createdAt)).limit(12)]);
-  const demoFor = (templateId: string) => demos.find((d) => d.template === templateId);
 
   return (
     <div className="bg-paper text-ink">
@@ -79,32 +78,7 @@ export default async function Landing() {
           <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">Sept univers. Zéro air de « site gratuit ».</h2>
           <p className="mt-4 text-zinc-600">Chaque template a sa typographie, sa palette, sa mise en page et son propre langage de conversion. Le marchand change tout — couleurs, polices, textes — sans casser la beauté.</p>
         </div>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {TEMPLATES.map((t) => {
-            const demo = demoFor(t.id);
-            const card = (
-              <>
-                <TemplatePreview t={t} className="transition duration-700 group-hover:scale-[1.02]" />
-                <div className="p-5">
-                  <div className="flex items-center justify-between">
-                    <p className="text-lg font-semibold">{t.name}</p>
-                    <span className="text-xs text-zinc-500">{t.vertical}</span>
-                  </div>
-                  <p className="mt-1 text-sm text-zinc-500">{t.tagline}</p>
-                  <div className="mt-3 flex items-center gap-1.5">
-                    {[t.colors.bg, t.colors.fg, t.colors.primary, t.colors.accent].map((c, i) => <span key={i} className="h-4 w-4 rounded-full border border-black/10" style={{ background: c }} />)}
-                    <span className="ml-auto text-xs font-medium text-zinc-700 group-hover:text-ink">{demo ? "Voir la démo →" : "Choisir →"}</span>
-                  </div>
-                </div>
-              </>
-            );
-            return demo ? (
-              <a key={t.id} href={storeUrl(demo.subdomain)} target="_blank" rel="noreferrer" className="group overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">{card}</a>
-            ) : (
-              <Link key={t.id} href="/signup" className="group overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">{card}</Link>
-            );
-          })}
-        </div>
+        <TemplateGrid demos={demos} />
       </section>
 
       <section id="how" className="bg-ink text-white">
