@@ -1,0 +1,176 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --color-ink: #0b0b0f;
+  --color-ink-2: #1c1c24;
+  --color-paper: #f7f7f5;
+  --color-brand: #ff5a1f;
+  --color-brand-deep: #c93f0e;
+  --animate-fade-up: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-marquee: marquee 28s linear infinite;
+  --animate-shimmer: shimmer 2.2s linear infinite;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  @keyframes shimmer {
+    from {
+      background-position: -200% 0;
+    }
+    to {
+      background-position: 200% 0;
+    }
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01", "liga";
+}
+
+/* ------------------------------ Storefront ------------------------------- */
+.sf {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+.sf h1,
+.sf h2,
+.sf h3,
+.sf .display {
+  font-family: var(--font-heading), Georgia, serif;
+  font-weight: var(--heading-weight, 500);
+  text-transform: var(--heading-case, none);
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+}
+.sf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: var(--radius);
+  background: var(--primary);
+  color: var(--primary-fg);
+  padding: 0.95rem 1.6rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition:
+    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.2s,
+    box-shadow 0.2s;
+}
+.sf-btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.94;
+  box-shadow: 0 10px 30px -12px color-mix(in srgb, var(--primary) 60%, transparent);
+}
+.sf-btn:active {
+  transform: translateY(0);
+}
+.sf-btn:disabled {
+  opacity: 0.6;
+  transform: none;
+  cursor: wait;
+}
+.sf-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 0.85rem 1.4rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+.sf-btn-ghost:hover {
+  background: var(--card);
+}
+.sf-input {
+  width: 100%;
+  border-radius: calc(var(--radius) * 0.6);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--card) 70%, var(--bg));
+  color: var(--fg);
+  padding: 0.85rem 1rem;
+  font-size: 0.95rem;
+  outline: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.sf-input::placeholder {
+  color: var(--muted);
+  opacity: 0.7;
+}
+.sf-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+.sf-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.sf-muted {
+  color: var(--muted);
+}
+.sf-img {
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--card);
+}
+.sf-img img {
+  transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.group:hover .sf-img img {
+  transform: scale(1.04);
+}
+
+/* ------------------------------- Dashboard -------------------------------- */
+.db-input {
+  @apply w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none transition placeholder:text-zinc-400 focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10;
+}
+.db-label {
+  @apply mb-1.5 block text-xs font-medium tracking-wide text-zinc-600;
+}
+.db-card {
+  @apply rounded-2xl border border-zinc-200/80 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)];
+}
+.db-btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50;
+}
+.db-btn-secondary {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-800 shadow-sm transition hover:bg-zinc-50 disabled:opacity-50;
+}
+.db-btn-danger {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100 disabled:opacity-50;
+}
+
+::selection {
+  background: #ff5a1f33;
+}
