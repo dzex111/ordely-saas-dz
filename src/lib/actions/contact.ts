@@ -15,6 +15,7 @@ export async function createContactRequestAction(_: FormState, formData: FormDat
       contact: z.string().trim().min(5, "Ajoutez un email ou un numéro de téléphone.").max(120),
       plan: z.string(),
       message: z.string().trim().max(1000).optional(),
+      source: z.string().optional(),
     })
     .safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
@@ -22,6 +23,7 @@ export async function createContactRequestAction(_: FormState, formData: FormDat
   const plan = (PLAN_IDS as readonly string[]).includes(parsed.data.plan)
     ? (parsed.data.plan as PlanId)
     : ("growth" as PlanId);
+  const source = parsed.data.source === "plan" ? "plan" : "contact";
 
   const store = await getCurrentStore().catch(() => null);
   const message = parsed.data.message ?? "";
@@ -31,6 +33,7 @@ export async function createContactRequestAction(_: FormState, formData: FormDat
     contact: parsed.data.contact,
     plan,
     message,
+    source,
   });
 
   // Instant admin notification (best-effort — never blocks the form).
@@ -40,6 +43,7 @@ export async function createContactRequestAction(_: FormState, formData: FormDat
     plan,
     message,
     storeName: store?.name ?? null,
+    source,
   }).catch(() => null);
 
   return { success: "Demande envoyée. L’admin vous contactera pour activer votre plan." };
@@ -49,12 +53,14 @@ const escapeHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;")
 
 /** Public broadcast: every chat that started the bot receives new contact requests.
  *  No chat ID configuration needed — anyone who presses Start subscribes. */
-async function notifyAdminTelegram(input: { name: string; contact: string; plan: PlanId; message: string; storeName: string | null }) {
+async function notifyAdminTelegram(input: { name: string; contact: string; plan: PlanId; message: string; storeName: string | null; source: string }) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token) return;
+  const kind = input.source === "plan" ? "طلب اشتراك — تغيير خطة" : "رسالة تواصل عامة";
   const text = [
-    "<b>طلب تواصل جديد — ORDELY</b>",
+    `<b>${kind} — ORDELY</b>`,
     "",
+    `<b>النوع:</b> ${input.source === "plan" ? "زر تغيير الخطة (اشتراك مدفوع)" : "نموذج التواصل (رسالة عادية)"}`,
     `<b>الاسم:</b> ${escapeHtml(input.name)}`,
     `<b>التواصل:</b> ${escapeHtml(input.contact)}`,
     `<b>الخطة المطلوبة:</b> ${escapeHtml(input.plan)}`,

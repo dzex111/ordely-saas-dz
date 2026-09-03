@@ -1,22 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, ShieldCheck, X } from "lucide-react";
+import { Check, Loader2, ShieldCheck, X } from "lucide-react";
 import type { PlanId } from "@/db/schema";
 import { PLANS, getPlan } from "@/lib/plans";
+import { createContactRequestAction } from "@/lib/actions/contact";
 import { cn, formatDZD } from "@/lib/utils";
 
 const REDIRECT_SECONDS = 8;
 
-export function PlanCards({ current }: { current: PlanId }) {
+export function PlanCards({ current, userName, userContact }: { current: PlanId; userName: string; userContact: string }) {
   const router = useRouter();
   const [selected, setSelected] = useState<PlanId | null>(null);
   const [countdown, setCountdown] = useState(REDIRECT_SECONDS);
+  const [state, action, pending] = useActionState(createContactRequestAction, null);
 
   useEffect(() => {
     if (!selected) return;
     setCountdown(REDIRECT_SECONDS);
+  }, [selected]);
+
+  useEffect(() => {
+    if (!selected || state?.success) return;
     const timer = setInterval(() => {
       setCountdown((c) => {
         if (c <= 1) {
@@ -28,7 +34,7 @@ export function PlanCards({ current }: { current: PlanId }) {
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [selected, router]);
+  }, [selected, state?.success, router]);
 
   const plan = selected ? getPlan(selected) : null;
 
@@ -75,10 +81,32 @@ export function PlanCards({ current }: { current: PlanId }) {
               <ShieldCheck className="h-5 w-5 text-white" strokeWidth={1.9} />
             </div>
             <h3 className="mt-4 text-lg font-semibold tracking-tight">Passer au plan {plan.name} ?</h3>
-            <p className="mt-2 text-sm leading-relaxed text-zinc-600">
-              Pour changer de plan, contactez l’admin via le formulaire de contact.
-              Votre plan actuel reste actif — <span className="font-medium text-zinc-900">rien ne change sans validation manuelle.</span>
-            </p>
+            {state?.success ? (
+              <p role="status" className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                Demande envoyée. L’admin vous contactera pour activer le plan {plan.name} — rien n’a changé pour l’instant.
+              </p>
+            ) : (
+              <form action={action} className="mt-4 space-y-3">
+                <p className="text-sm leading-relaxed text-zinc-600">
+                  Envoyez une demande d’abonnement — votre plan actuel reste actif, <span className="font-medium text-zinc-900">rien ne change sans validation manuelle de l’admin.</span>
+                </p>
+                <input type="hidden" name="plan" value={plan.id} />
+                <input type="hidden" name="source" value="plan" />
+                <div>
+                  <label className="db-label" htmlFor="plan-name">Votre nom</label>
+                  <input id="plan-name" name="name" required minLength={2} maxLength={80} defaultValue={userName} className="db-input" />
+                </div>
+                <div>
+                  <label className="db-label" htmlFor="plan-contact">Email ou téléphone</label>
+                  <input id="plan-contact" name="contact" required minLength={5} maxLength={120} defaultValue={userContact} className="db-input" />
+                </div>
+                {state?.error && <p role="alert" className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{state.error}</p>}
+                <button type="submit" disabled={pending} className="db-btn w-full">
+                  {pending && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Envoyer la demande d’abonnement
+                </button>
+              </form>
+            )}
             <div className="mt-4 h-1 overflow-hidden rounded-full bg-zinc-100">
               <div
                 className="h-full rounded-full bg-zinc-900 transition-all duration-1000 ease-linear"
@@ -86,7 +114,7 @@ export function PlanCards({ current }: { current: PlanId }) {
               />
             </div>
             <p className="mt-2 text-xs text-zinc-500">Redirection vers le contact dans {countdown} s…</p>
-            <div className="mt-5 flex gap-2">
+            <div className="mt-4 flex gap-2">
               <button type="button" onClick={() => router.push(`/contact?plan=${plan.id}`)} className="db-btn flex-1">
                 Aller au contact
               </button>

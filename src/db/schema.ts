@@ -310,6 +310,7 @@ export const contactRequests = pgTable(
     contact: text("contact").notNull(), // email or phone
     plan: text("plan").$type<PlanId>().notNull().default("growth"),
     message: text("message").notNull().default(""),
+    source: text("source").notNull().default("contact"), // contact (footer/page form) | plan (plan button)
     status: text("status").notNull().default("open"), // open | handled | closed
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },

@@ -23,6 +23,7 @@ export function FooterContact() {
           <input id="footer-message" name="message" maxLength={1000} className="db-input" placeholder="Je veux passer au plan Growth…" />
         </div>
         <input type="hidden" name="plan" value="growth" />
+        <input type="hidden" name="source" value="contact" />
         <button type="submit" disabled={pending} className="db-btn !px-5 !py-2.5" aria-label="Envoyer">
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           <span className="md:hidden">Envoyer</span>

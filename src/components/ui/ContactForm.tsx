@@ -33,6 +33,7 @@ export function ContactForm({ defaultPlan }: { defaultPlan: string }) {
       </div>
       {state?.error && <p role="alert" className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{state.error}</p>}
       {state?.success && <p role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{state.success}</p>}
+      <input type="hidden" name="source" value="contact" />
       <button type="submit" disabled={pending} className="db-btn w-full !py-2.5">
         {pending && <Loader2 className="h-4 w-4 animate-spin" />}
         Envoyer la demande
