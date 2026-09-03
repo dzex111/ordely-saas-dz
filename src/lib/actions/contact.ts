@@ -47,12 +47,12 @@ export async function createContactRequestAction(_: FormState, formData: FormDat
 
 const escapeHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-/** Sends an organized Arabic notification to the admin Telegram chat. */
+/** Public broadcast: every chat that started the bot receives new contact requests.
+ *  No chat ID configuration needed — anyone who presses Start subscribes. */
 async function notifyAdminTelegram(input: { name: string; contact: string; plan: PlanId; message: string; storeName: string | null }) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
-  if (!token || !chatId) return;
-  const lines = [
+  if (!token) return;
+  const text = [
     "<b>طلب تواصل جديد — ORDELY</b>",
     "",
     `<b>الاسم:</b> ${escapeHtml(input.name)}`,
@@ -60,11 +60,30 @@ async function notifyAdminTelegram(input: { name: string; contact: string; plan:
     `<b>الخطة المطلوبة:</b> ${escapeHtml(input.plan)}`,
     `<b>المتجر:</b> ${escapeHtml(input.storeName ?? "—")}`,
     input.message ? `<b>الرسالة:</b> ${escapeHtml(input.message)}` : "<b>الرسالة:</b> —",
-  ];
-  const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: chatId, text: lines.join("\n"), parse_mode: "HTML" }),
-  });
-  if (!res.ok) throw new Error(`telegram ${res.status}`);
+  ].join("\n");
+
+  const chatIds = new Set<string>();
+  try {
+    const updates = (await (
+      await fetch(`https://api.telegram.org/bot${token}/getUpdates`)
+    ).json()) as { result?: Array<{ message?: { chat?: { id?: number | string } } }> };
+    for (const u of updates.result ?? []) {
+      const id = u.message?.chat?.id;
+      if (id !== undefined) chatIds.add(String(id));
+    }
+  } catch {
+    // fall through to optional fixed chat
+  }
+  if (process.env.TELEGRAM_CHAT_ID) chatIds.add(process.env.TELEGRAM_CHAT_ID);
+  if (chatIds.size === 0) return;
+
+  await Promise.allSettled(
+    [...chatIds].map((chat_id) =>
+      fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id, text, parse_mode: "HTML" }),
+      }),
+    ),
+  );
 }
