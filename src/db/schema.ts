@@ -297,6 +297,25 @@ export const subscriptions = pgTable(
   (t) => [index("subscriptions_store_idx").on(t.storeId)],
 );
 
+/* -------------------------------------------------------------------------- */
+/*  Contact (plan upgrade requests — reviewed manually by the admin)            */
+/* -------------------------------------------------------------------------- */
+
+export const contactRequests = pgTable(
+  "contact_requests",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id").references(() => stores.id, { onDelete: "set null" }),
+    name: text("name").notNull(),
+    contact: text("contact").notNull(), // email or phone
+    plan: text("plan").$type<PlanId>().notNull().default("growth"),
+    message: text("message").notNull().default(""),
+    status: text("status").notNull().default("open"), // open | handled | closed
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("contact_requests_status_idx").on(t.status)],
+);
+
 export type User = typeof users.$inferSelect;
 export type Store = typeof stores.$inferSelect;
 export type Product = typeof products.$inferSelect;
@@ -304,3 +323,4 @@ export type Customer = typeof customers.$inferSelect;
 export type Order = typeof orders.$inferSelect;
 export type OrderEvent = typeof orderEvents.$inferSelect;
 export type Subscription = typeof subscriptions.$inferSelect;
+export type ContactRequest = typeof contactRequests.$inferSelect;

@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { and, eq, ne } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import { products, stores, subscriptions, type BrandOverrides, type PlanId, type StoreContent, type StoreSettings, PLAN_IDS } from "@/db/schema";
+import { products, stores, subscriptions, type BrandOverrides, type StoreContent, type StoreSettings } from "@/db/schema";
 import { getCurrentStore, requireStore, requireUser } from "@/lib/auth";
 import { getTemplate, TEMPLATE_IDS } from "@/lib/templates";
 import { isValidSubdomain, slugify } from "@/lib/utils";
@@ -224,31 +224,4 @@ export async function updateSettingsAction(_: FormState, formData: FormData): Pr
   revalidateStore(store.subdomain);
   if (newSub !== store.subdomain) revalidateStore(newSub);
   return { success: "Paramètres enregistrés." };
-}
-
-/* --------------------------------- billing --------------------------------- */
-
-export async function changePlanAction(planId: string) {
-  const { store } = await requireStore();
-  if (!(PLAN_IDS as readonly string[]).includes(planId)) return { error: "Plan inconnu." };
-  const plan = planId as PlanId;
-  if (plan === store.plan) return { error: "Vous êtes déjà sur ce plan." };
-  const isFree = plan === "starter";
-  const periodEnd = new Date(Date.now() + 30 * 86400_000);
-  await db.transaction(async (tx) => {
-    await tx
-      .update(stores)
-      .set({ plan, planStatus: isFree ? "active" : "trialing", trialEndsAt: isFree ? null : new Date(Date.now() + 14 * 86400_000), updatedAt: new Date() })
-      .where(eq(stores.id, store.id));
-    await tx.insert(subscriptions).values({
-      storeId: store.id,
-      plan,
-      status: isFree ? "active" : "trialing",
-      provider: process.env.CHARGILY_SECRET_KEY ? "chargily" : process.env.STRIPE_SECRET_KEY ? "stripe" : "manual",
-      currentPeriodEnd: isFree ? null : periodEnd,
-      metadata: { source: "dashboard" },
-    });
-  });
-  revalidatePath("/dashboard", "layout");
-  return { success: isFree ? "Vous êtes repassé sur Starter." : "Plan activé — 14 jours d’essai offerts." };
 }

@@ -14,14 +14,13 @@ export default async function BillingPage() {
     db.query.subscriptions.findMany({ where: eq(subscriptions.storeId, store.id), orderBy: [desc(subscriptions.createdAt)], limit: 10 }),
     db.select({ n: count() }).from(products).where(eq(products.storeId, store.id)),
   ]);
-  const provider = process.env.CHARGILY_SECRET_KEY ? "Chargily Pay (CIB / EDAHABIA)" : process.env.STRIPE_SECRET_KEY ? "Stripe" : null;
   return (
     <>
       <PageHeader title="Abonnement" description="Commencez gratuitement, montez en gamme quand les commandes suivent." />
       <div className="mb-6 grid gap-4 md:grid-cols-3">
         <div className="db-card p-5"><p className="text-xs text-zinc-500">Plan actuel</p><p className="mt-1 text-xl font-semibold">{plan.name}</p><p className="text-xs text-zinc-500">{store.planStatus === "trialing" && store.trialEndsAt ? `Essai jusqu’au ${formatDate(store.trialEndsAt)}` : "Actif"}</p></div>
         <div className="db-card p-5"><p className="text-xs text-zinc-500">Produits</p><p className="mt-1 text-xl font-semibold">{n}{plan.productLimit ? ` / ${plan.productLimit}` : ""}</p><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-zinc-100"><div className="h-full rounded-full bg-zinc-900" style={{ width: plan.productLimit ? `${Math.min(100, (n / plan.productLimit) * 100)}%` : "8%" }} /></div></div>
-        <div className="db-card p-5"><p className="text-xs text-zinc-500">Paiement</p><p className="mt-1 text-sm font-semibold">{provider ?? "Facturation manuelle"}</p><p className="text-xs text-zinc-500">{provider ? "Prélèvement mensuel automatique." : "Ajoutez CHARGILY_SECRET_KEY ou STRIPE_SECRET_KEY pour activer le paiement en ligne."}</p></div>
+        <div className="db-card p-5"><p className="text-xs text-zinc-500">Paiement</p><p className="mt-1 text-sm font-semibold">Via l’admin</p><p className="text-xs text-zinc-500">Choisissez un plan ci-dessous puis contactez-nous via le formulaire. Rien ne change sans validation manuelle.</p></div>
       </div>
       <PlanCards current={store.plan} />
       {history.length > 0 && (
