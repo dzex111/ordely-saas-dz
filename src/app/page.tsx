@@ -8,7 +8,6 @@ import { TEMPLATES } from "@/lib/templates";
 import { PLANS } from "@/lib/plans";
 import { formatDZD } from "@/lib/utils";
 import { TemplateGrid } from "@/components/store/TemplateGrid";
-import { OrdelyLogo } from "@/components/ui/OrdelyLogo";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +18,7 @@ export default async function Landing() {
     <div className="bg-paper text-ink">
       <header className="sticky top-0 z-40 border-b border-zinc-200/60 bg-paper/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Link href="/" aria-label="ORDELY - home"><OrdelyLogo /></Link>
+          <Link href="/" className="text-base font-bold tracking-tight">ORDELY</Link>
           <nav className="hidden items-center gap-8 text-sm text-zinc-600 md:flex">
             <a href="#templates" className="hover:text-ink">Templates</a>
             <a href="#how" className="hover:text-ink">Comment ça marche</a>
