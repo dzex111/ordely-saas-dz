@@ -24,12 +24,47 @@ export async function createContactRequestAction(_: FormState, formData: FormDat
     : ("growth" as PlanId);
 
   const store = await getCurrentStore().catch(() => null);
+  const message = parsed.data.message ?? "";
   await db.insert(contactRequests).values({
     storeId: store?.id ?? null,
     name: parsed.data.name,
     contact: parsed.data.contact,
     plan,
-    message: parsed.data.message ?? "",
+    message,
   });
+
+  // Instant admin notification (best-effort — never blocks the form).
+  await notifyAdminTelegram({
+    name: parsed.data.name,
+    contact: parsed.data.contact,
+    plan,
+    message,
+    storeName: store?.name ?? null,
+  }).catch(() => null);
+
   return { success: "Demande envoyée. L’admin vous contactera pour activer votre plan." };
+}
+
+const escapeHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+/** Sends an organized Arabic notification to the admin Telegram chat. */
+async function notifyAdminTelegram(input: { name: string; contact: string; plan: PlanId; message: string; storeName: string | null }) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) return;
+  const lines = [
+    "<b>طلب تواصل جديد — ORDELY</b>",
+    "",
+    `<b>الاسم:</b> ${escapeHtml(input.name)}`,
+    `<b>التواصل:</b> ${escapeHtml(input.contact)}`,
+    `<b>الخطة المطلوبة:</b> ${escapeHtml(input.plan)}`,
+    `<b>المتجر:</b> ${escapeHtml(input.storeName ?? "—")}`,
+    input.message ? `<b>الرسالة:</b> ${escapeHtml(input.message)}` : "<b>الرسالة:</b> —",
+  ];
+  const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chat_id: chatId, text: lines.join("\n"), parse_mode: "HTML" }),
+  });
+  if (!res.ok) throw new Error(`telegram ${res.status}`);
 }

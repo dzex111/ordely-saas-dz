@@ -8,6 +8,7 @@ import { TEMPLATES } from "@/lib/templates";
 import { PLANS } from "@/lib/plans";
 import { formatDZD } from "@/lib/utils";
 import { TemplateGrid } from "@/components/store/TemplateGrid";
+import { FooterContact } from "@/components/store/FooterContact";
 
 export const dynamic = "force-dynamic";
 
@@ -139,10 +140,19 @@ export default async function Landing() {
         </div>
       </section>
 
+      <section id="contact" className="mx-auto max-w-7xl scroll-mt-20 px-6 pb-20">
+        <div className="mb-8 max-w-2xl">
+          <p className="text-xs font-semibold uppercase tracking-widest text-brand">Contact</p>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">Une question ? Écrivez-nous.</h2>
+          <p className="mt-3 text-zinc-600">Changement de plan, domaine personnalisé, accompagnement — l’admin vous répond directement.</p>
+        </div>
+        <FooterContact />
+      </section>
+
       <footer className="border-t border-zinc-200">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-10 text-sm text-zinc-500 md:flex-row">
           <p className="flex items-center gap-2"><img src="/logo.svg" alt="ORDELY" className="h-5 w-auto" /> · Le Shopify du COD, né à Alger.</p>
-          <div className="flex gap-6"><a href="#templates">Templates</a><a href="#pricing">Tarifs</a><Link href="/login">Connexion</Link></div>
+          <div className="flex gap-6"><a href="#templates">Templates</a><a href="#pricing">Tarifs</a><a href="#contact">Contact</a><Link href="/login">Connexion</Link></div>
         </div>
       </footer>
     </div>
