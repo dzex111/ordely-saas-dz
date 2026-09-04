@@ -9,6 +9,8 @@ import { STATUS_META } from "@/lib/commerce";
 import { wilayaByCode, formatPhone } from "@/lib/algeria";
 import { cn, formatDZD, formatDateTime } from "@/lib/utils";
 import { EmptyState, PageHeader, StatusBadge } from "@/components/dashboard/ui";
+import { RiskBadge } from "@/components/dashboard/RiskBadge";
+import { getStoreRiskMap } from "@/lib/risk-data";
 
 export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ status?: string; q?: string }> }) {
   const { store } = await requireStore();
@@ -20,6 +22,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
     q ? or(ilike(orders.customerName, `%${q}%`), ilike(orders.customerPhone, `%${q.replace(/\s/g, "")}%`)) : undefined,
   );
   const rows = await db.query.orders.findMany({ where, orderBy: [desc(orders.createdAt)], limit: 200 });
+  const risks = await getStoreRiskMap(store.id, rows);
 
   return (
     <>
@@ -66,6 +69,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                 <th className="hidden px-4 py-3 font-medium md:table-cell">Produit</th>
                 <th className="hidden px-4 py-3 font-medium lg:table-cell">Wilaya</th>
                 <th className="px-4 py-3 font-medium">Statut</th>
+                <th className="hidden px-4 py-3 font-medium lg:table-cell">Risque</th>
                 <th className="px-4 py-3 text-right font-medium">Total</th>
                 <th className="hidden px-4 py-3 text-right font-medium md:table-cell">Date</th>
               </tr>
@@ -81,6 +85,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                   <td className="hidden max-w-[220px] truncate px-4 py-3 text-zinc-600 md:table-cell">{o.items.map((i) => `${i.name}${i.qty > 1 ? ` ×${i.qty}` : ""}`).join(", ")}</td>
                   <td className="hidden px-4 py-3 text-zinc-600 lg:table-cell">{wilayaByCode(o.wilayaCode)?.name}</td>
                   <td className="px-4 py-3"><StatusBadge status={o.status} /></td>
+                  <td className="hidden px-4 py-3 lg:table-cell">{risks.get(o.id) && <RiskBadge risk={risks.get(o.id)!} />}</td>
                   <td className="px-4 py-3 text-right font-semibold tabular-nums">{formatDZD(o.total)}</td>
                   <td className="hidden px-4 py-3 text-right text-xs text-zinc-500 md:table-cell">{formatDateTime(o.createdAt)}</td>
                 </tr>
