@@ -14,7 +14,6 @@ import { StoreIdBox } from "@/components/dashboard/StoreIdBox";
 import { CustomDomainPanel } from "@/components/dashboard/CustomDomainPanel";
 import { ShippingPanel } from "@/components/dashboard/ShippingPanel";
 import { DeleteStorePanel } from "@/components/dashboard/DeleteStorePanel";
-import { ShippingPanel } from "@/components/dashboard/ShippingPanel";
 
 export default async function SettingsPage() {
   const { store, user } = await requireStore();
