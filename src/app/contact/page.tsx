@@ -11,6 +11,8 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
   const { plan, source } = await searchParams;
   const defaultPlan: PlanId = (PLAN_IDS as readonly string[]).includes(plan ?? "") ? (plan as PlanId) : "pro";
   const fromPlan = source === "plan";
+  // BUSINESS is not open yet — every subscription request is currently PRO.
+  const displayPlan: PlanId = defaultPlan === "business" ? "pro" : defaultPlan;
   return (
     <div className="min-h-dvh bg-paper text-ink">
       <header className="border-b border-zinc-200/60 bg-paper/80 backdrop-blur-xl">
@@ -21,7 +23,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
       </header>
       <main className="mx-auto max-w-3xl px-6 py-14">
         <p className="text-xs font-semibold uppercase tracking-widest text-brand">Contact admin</p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">{fromPlan ? `Demande d’abonnement ${getPlan(defaultPlan).name}` : "Changer de plan ? On s’en occupe."}</h1>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">{fromPlan ? `Demande d’abonnement ${getPlan(displayPlan).name}` : "Changer de plan ? On s’en occupe."}</h1>
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-zinc-600">
           Les changements de plan sont validés manuellement par l’admin après paiement.
           Remplissez ce formulaire — votre plan actuel reste actif, rien ne change sans validation.
@@ -36,7 +38,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
           </a>
         </div>
         <div className="db-card mt-8 p-6 md:p-8">
-          <ContactForm defaultPlan={defaultPlan} source={fromPlan ? "plan" : "contact"} />
+          <ContactForm defaultPlan={displayPlan} source={fromPlan ? "plan" : "contact"} />
         </div>
       </main>
     </div>

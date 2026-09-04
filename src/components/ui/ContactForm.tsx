@@ -24,10 +24,11 @@ export function ContactForm({ defaultPlan, source }: { defaultPlan: string; sour
       </div>
       <div>
         <label className="db-label" htmlFor="plan">Plan souhaité</label>
-        <select id="plan" name="plan" defaultValue={defaultPlan} className="db-input">
-          {PLANS.map((p) => (
+        <select id="plan" name="plan" defaultValue={defaultPlan === "business" ? "pro" : defaultPlan} className="db-input">
+          {PLANS.filter((p) => p.id !== "business").map((p) => (
             <option key={p.id} value={p.id}>{p.name} — {p.priceMonthly === 0 ? "0 DA" : `${p.priceMonthly.toLocaleString("fr-DZ")} DA / mois`}</option>
           ))}
+          <option value="business" disabled>BUSINESS — bientôt disponible</option>
         </select>
       </div>
       <div>

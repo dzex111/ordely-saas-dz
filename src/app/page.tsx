@@ -136,7 +136,11 @@ export default async function Landing() {
               <ul className="mt-6 flex-1 space-y-2.5 text-sm">
                 {p.features.map((f) => <li key={f} className="flex items-start gap-2"><Check className={`mt-0.5 h-4 w-4 shrink-0 ${p.highlight ? "text-brand" : "text-emerald-600"}`} /> {f}</li>)}
               </ul>
-              <Link href="/signup" className={`mt-8 rounded-full px-5 py-3 text-center text-sm font-semibold transition ${p.highlight ? "bg-white text-ink hover:bg-zinc-100" : "bg-ink text-white hover:bg-zinc-800"}`}>{p.cta}</Link>
+              {p.id === "business" ? (
+                <span className="mt-8 cursor-not-allowed rounded-full bg-zinc-200 px-5 py-3 text-center text-sm font-semibold text-zinc-400">Bientôt disponible</span>
+              ) : (
+                <Link href="/signup" className={`mt-8 rounded-full px-5 py-3 text-center text-sm font-semibold transition ${p.highlight ? "bg-white text-ink hover:bg-zinc-100" : "bg-ink text-white hover:bg-zinc-800"}`}>{p.cta}</Link>
+              )}
             </div>
           ))}
         </div>

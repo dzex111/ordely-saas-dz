@@ -36,6 +36,7 @@ export function PlanCards({ current }: { current: PlanId }) {
       <div className="grid gap-4 lg:grid-cols-3">
         {PLANS.map((p) => {
           const active = p.id === current;
+          const comingSoon = p.id === "business";
           return (
             <div key={p.id} className={cn("relative flex flex-col rounded-2xl border bg-white p-6 shadow-sm", p.highlight ? "border-zinc-900 shadow-xl" : "border-zinc-200")}>
               {p.badge && <span className="absolute -top-2.5 left-6 rounded-full bg-zinc-900 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">{p.badge}</span>}
@@ -47,14 +48,15 @@ export function PlanCards({ current }: { current: PlanId }) {
               </ul>
               <button
                 type="button"
-                disabled={active}
+                disabled={active || comingSoon}
                 onClick={() => {
+                  if (comingSoon) return;
                   setSelected(p.id);
                   setCountdown(REDIRECT_SECONDS);
                 }}
-                className={cn("mt-6 w-full", active ? "db-btn-secondary" : "db-btn")}
+                className={cn("mt-6 w-full", active || comingSoon ? "cursor-not-allowed bg-zinc-100 text-zinc-400" : "db-btn", active && "db-btn-secondary")}
               >
-                {active ? "Plan actuel" : p.cta}
+                {active ? "Plan actuel" : comingSoon ? "Bientôt disponible" : p.cta}
               </button>
             </div>
           );
