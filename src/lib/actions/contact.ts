@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { db } from "@/db";
 import { contactRequests, PLAN_IDS, type PlanId } from "@/db/schema";
+import { getPlan } from "@/lib/plans";
 import { getCurrentStore } from "@/lib/auth";
 import type { FormState } from "./auth";
 
@@ -56,14 +57,17 @@ const escapeHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;")
 async function notifyAdminTelegram(input: { name: string; contact: string; plan: PlanId; message: string; storeName: string | null; source: string }) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token) return;
-  const kind = input.source === "plan" ? "طلب اشتراك — تغيير خطة" : "رسالة تواصل عامة";
+  const isPlan = input.source === "plan";
+  const planLabel = isPlan
+    ? `${getPlan(input.plan).name} — ${getPlan(input.plan).priceMonthly.toLocaleString("fr-FR")} DA / mois`
+    : null;
   const text = [
-    `<b>${kind} — ORDELY</b>`,
+    `<b>${isPlan ? "طلب اشتراك — تغيير خطة" : "رسالة تواصل عامة"} — ORDELY</b>`,
     "",
-    `<b>النوع:</b> ${input.source === "plan" ? "زر تغيير الخطة (اشتراك مدفوع)" : "نموذج التواصل (رسالة عادية)"}`,
+    `<b>النوع:</b> ${isPlan ? "زر تغيير الخطة (اشتراك مدفوع)" : "نموذج التواصل (رسالة عادية)"}`,
+    ...(planLabel ? [`<b>الخطة المطلوبة:</b> ${escapeHtml(planLabel)}`] : []),
     `<b>الاسم:</b> ${escapeHtml(input.name)}`,
     `<b>التواصل:</b> ${escapeHtml(input.contact)}`,
-    `<b>الخطة المطلوبة:</b> ${escapeHtml(input.plan)}`,
     `<b>المتجر:</b> ${escapeHtml(input.storeName ?? "—")}`,
     input.message ? `<b>الرسالة:</b> ${escapeHtml(input.message)}` : "<b>الرسالة:</b> —",
   ].join("\n");

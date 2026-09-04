@@ -8,7 +8,7 @@ import { PageHeader } from "@/components/dashboard/ui";
 import { PlanCards } from "@/components/dashboard/PlanCards";
 
 export default async function BillingPage() {
-  const { store, user } = await requireStore();
+  const { store } = await requireStore();
   const plan = getPlan(store.plan);
   const [history, [{ n }]] = await Promise.all([
     db.query.subscriptions.findMany({ where: eq(subscriptions.storeId, store.id), orderBy: [desc(subscriptions.createdAt)], limit: 10 }),
@@ -22,7 +22,7 @@ export default async function BillingPage() {
         <div className="db-card p-5"><p className="text-xs text-zinc-500">Produits</p><p className="mt-1 text-xl font-semibold">{n}{plan.productLimit ? ` / ${plan.productLimit}` : ""}</p><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-zinc-100"><div className="h-full rounded-full bg-zinc-900" style={{ width: plan.productLimit ? `${Math.min(100, (n / plan.productLimit) * 100)}%` : "8%" }} /></div></div>
         <div className="db-card p-5"><p className="text-xs text-zinc-500">Paiement</p><p className="mt-1 text-sm font-semibold">Via l’admin</p><p className="text-xs text-zinc-500">Choisissez un plan ci-dessous puis contactez-nous via le formulaire. Rien ne change sans validation manuelle.</p></div>
       </div>
-      <PlanCards current={store.plan} userName={user.name} userContact={user.email} />
+      <PlanCards current={store.plan} />
       {history.length > 0 && (
         <div className="db-card mt-8 overflow-hidden">
           <div className="border-b border-zinc-100 px-5 py-3 text-sm font-semibold">Historique</div>
