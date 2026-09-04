@@ -26,8 +26,8 @@ function revalidateStore(subdomain: string) {
 
 export async function createStoreAction(_: FormState, formData: FormData): Promise<FormState> {
   const user = await requireUser();
-  const existing = await getOwnedStore();
-  if (existing) redirect("/dashboard");
+  // No owned-store redirect here: owners may add a 2nd/3rd store.
+  // The entitlement check below enforces the plan limit server-side.
 
   const parsed = z
     .object({
