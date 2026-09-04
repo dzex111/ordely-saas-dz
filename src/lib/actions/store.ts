@@ -113,6 +113,19 @@ export async function createStoreAction(_: FormState, formData: FormData): Promi
   redirect("/dashboard?welcome=1");
 }
 
+/* ------------------------------ delete store ------------------------------- */
+
+/** Owner-only: permanently delete the current store and EVERYTHING in it.
+ *  Requires typing the exact store name. No recovery possible. */
+export async function deleteStoreAction(_: FormState, formData: FormData): Promise<FormState> {
+  const { store, user } = await requireStore();
+  if (store.ownerId !== user.id) return { error: "Seul le propriétaire peut supprimer la boutique." };
+  const typed = String(formData.get("confirm") ?? "").trim();
+  if (typed !== store.name) return { error: "Tapez exactement le nom de la boutique pour confirmer." };
+  await db.delete(stores).where(and(eq(stores.id, store.id), eq(stores.ownerId, user.id)));
+  redirect("/dashboard");
+}
+
 /* -------------------------------- customize -------------------------------- */
 
 export async function changeTemplateAction(templateId: string) {

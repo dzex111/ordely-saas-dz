@@ -13,6 +13,8 @@ import { SettingsForm } from "@/components/dashboard/SettingsForm";
 import { StoreIdBox } from "@/components/dashboard/StoreIdBox";
 import { CustomDomainPanel } from "@/components/dashboard/CustomDomainPanel";
 import { ShippingPanel } from "@/components/dashboard/ShippingPanel";
+import { DeleteStorePanel } from "@/components/dashboard/DeleteStorePanel";
+import { ShippingPanel } from "@/components/dashboard/ShippingPanel";
 
 export default async function SettingsPage() {
   const { store, user } = await requireStore();
@@ -30,7 +32,10 @@ export default async function SettingsPage() {
         </div>
       )}
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2"><SettingsForm key={store.updatedAt.toISOString()} store={store} /></div>
+        <div className="space-y-6 lg:col-span-2">
+          <SettingsForm key={store.updatedAt.toISOString()} store={store} />
+          {store.ownerId === user.id && <DeleteStorePanel storeName={store.name} />}
+        </div>
         <div className="space-y-4">
           {store.publicId && <StoreIdBox publicId={store.publicId} />}
           <CustomDomainPanel domain={store.customDomain} status={store.customDomainStatus} canUse={hasFeature(store.plan, "customDomain")} />
