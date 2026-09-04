@@ -23,9 +23,9 @@ export function FooterContact() {
         </div>
         <div>
           <label className="db-label" htmlFor="footer-message">Message</label>
-          <input id="footer-message" name="message" maxLength={1000} className="db-input" placeholder="Je veux passer au plan Growth…" />
+          <input id="footer-message" name="message" maxLength={1000} className="db-input" placeholder="Je veux passer au plan PRO…" />
         </div>
-        <input type="hidden" name="plan" value="growth" />
+        <input type="hidden" name="plan" value="pro" />
         <input type="hidden" name="source" value="contact" />
         <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden className="hidden" />
         <Turnstile onVerify={setHuman} />

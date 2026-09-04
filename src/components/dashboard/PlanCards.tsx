@@ -16,7 +16,6 @@ export function PlanCards({ current }: { current: PlanId }) {
 
   useEffect(() => {
     if (!selected) return;
-    setCountdown(REDIRECT_SECONDS);
     const timer = setInterval(() => {
       setCountdown((c) => {
         if (c <= 1) {
@@ -38,8 +37,8 @@ export function PlanCards({ current }: { current: PlanId }) {
         {PLANS.map((p) => {
           const active = p.id === current;
           return (
-            <div key={p.id} className={cn("relative flex flex-col rounded-2xl border bg-white p-6 shadow-sm", p.highlight ? "border-zinc-900" : "border-zinc-200")}>
-              {p.highlight && <span className="absolute -top-2.5 left-6 rounded-full bg-zinc-900 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">Populaire</span>}
+            <div key={p.id} className={cn("relative flex flex-col rounded-2xl border bg-white p-6 shadow-sm", p.highlight ? "border-zinc-900 shadow-xl" : "border-zinc-200")}>
+              {p.badge && <span className="absolute -top-2.5 left-6 rounded-full bg-zinc-900 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">{p.badge}</span>}
               <p className="text-sm font-semibold">{p.name}</p>
               <p className="mt-3 text-3xl font-semibold tracking-tight">{p.priceMonthly === 0 ? "0 DA" : formatDZD(p.priceMonthly)}<span className="text-sm font-normal text-zinc-500"> /mois</span></p>
               <p className="text-xs text-zinc-500">{p.description}</p>
@@ -49,10 +48,13 @@ export function PlanCards({ current }: { current: PlanId }) {
               <button
                 type="button"
                 disabled={active}
-                onClick={() => setSelected(p.id)}
+                onClick={() => {
+                  setSelected(p.id);
+                  setCountdown(REDIRECT_SECONDS);
+                }}
                 className={cn("mt-6 w-full", active ? "db-btn-secondary" : "db-btn")}
               >
-                {active ? "Plan actuel" : `Choisir ${p.name}`}
+                {active ? "Plan actuel" : p.cta}
               </button>
             </div>
           );

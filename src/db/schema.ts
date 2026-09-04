@@ -79,8 +79,11 @@ export const ORDER_STATUSES = [
 ] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
-export const PLAN_IDS = ["starter", "growth", "scale"] as const;
+export const PLAN_IDS = ["starter", "pro", "business"] as const;
 export type PlanId = (typeof PLAN_IDS)[number];
+
+/** Legacy ids kept for the one-way DB migration (growth→pro, scale→business). */
+export const LEGACY_PLAN_IDS = ["growth", "scale"] as const;
 
 const bytea = customType<{ data: Buffer; driverData: Buffer }>({
   dataType() {
@@ -313,7 +316,7 @@ export const contactRequests = pgTable(
     storeId: uuid("store_id").references(() => stores.id, { onDelete: "set null" }),
     name: text("name").notNull(),
     contact: text("contact").notNull(), // email or phone
-    plan: text("plan").$type<PlanId>().notNull().default("growth"),
+    plan: text("plan").$type<PlanId>().notNull().default("starter"),
     message: text("message").notNull().default(""),
     source: text("source").notNull().default("contact"), // contact (footer/page form) | plan (plan button)
     ip: text("ip"), // abuse rate-limiting
@@ -357,3 +360,24 @@ export const notifications = pgTable(
 );
 
 export type Notification = typeof notifications.$inferSelect;
+
+/* -------------------------------------------------------------------------- */
+/*  AI usage (metered credits — subscription + included quota + paid top-ups)   */
+/*  AI is NEVER unlimited, on any plan. Quotas live in plans.ts (central).      */
+/* -------------------------------------------------------------------------- */
+
+export const aiUsage = pgTable(
+  "ai_usage",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull().default("confirmation"), // confirmation | chatbot | ...
+    units: integer("units").notNull().default(1),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("ai_usage_store_idx").on(t.storeId), index("ai_usage_store_created_idx").on(t.storeId, t.createdAt)],
+);
+
+export type AiUsage = typeof aiUsage.$inferSelect;

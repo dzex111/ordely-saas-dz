@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { notifications, orders, products, type NotificationType } from "@/db/schema";
 import { requireStore } from "@/lib/auth";
 import { logoutAction } from "@/lib/actions/auth";
-import { getPlan } from "@/lib/plans";
+import { getPlan, upgradeCta } from "@/lib/plans";
 import { storeUrl, timeAgo } from "@/lib/utils";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { DashboardSearch } from "@/components/dashboard/DashboardSearch";
@@ -35,11 +35,10 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   if (store.suspended) {
     items.push({ id: "sys-suspended", title: "Boutique suspendue par l’admin", body: "Contactez l’admin via la page Contact.", link: "/contact", time: "maintenant", read: false, kind: "alert" });
   }
-  if (store.planStatus === "trialing" && store.trialEndsAt && store.trialEndsAt.getTime() - Date.now() < 3 * 86400_000) {
-    items.push({ id: "sys-trial", title: "Essai bientôt terminé", body: "Contactez l’admin pour activer votre plan.", link: "/dashboard/billing", time: "maintenant", read: false, kind: "warn" });
-  }
-  if (plan.productLimit !== null && productCount >= plan.productLimit) {
-    items.push({ id: "sys-limit", title: `Limite ${plan.name} atteinte`, body: `${productCount} produits — passez au plan supérieur.`, link: "/dashboard/billing", time: "maintenant", read: false, kind: "warn" });
+  // No trials on ORDELY: Starter is free forever, paid plans are admin-activated.
+  const productLimit = plan.limits.productsPerStore;
+  if (productLimit !== null && productCount >= productLimit) {
+    items.push({ id: "sys-limit", title: `Limite ${plan.name} atteinte`, body: `${productCount} produits — ${upgradeCta(store.plan) || "contactez l’admin"}.`, link: "/dashboard/billing", time: "maintenant", read: false, kind: "warn" });
   }
   for (const n of stored) {
     items.push({ id: n.id, title: n.title, body: n.body, link: n.link, time: timeAgo(n.createdAt), read: n.readAt !== null, kind: KIND[n.type] ?? "info" });

@@ -127,6 +127,7 @@ type Dict = {
   errOptions: string;
   errQtyMax: (n: number) => string;
   errTooMany: string;
+  errMonthlyLimit: (n: number, plan: string) => string;
   tyMeta: string;
   etaNorth: string;
   etaHighlands: string;
@@ -246,6 +247,7 @@ const fr: Dict = {
   errOptions: "Choisissez toutes les options (taille, couleur…).",
   errQtyMax: (n) => `Quantité maximale : ${n} par commande.`,
   errTooMany: "Trop de commandes. Réessayez dans une heure.",
+  errMonthlyLimit: (n, plan) => `Vous avez atteint la limite de ${n} commandes / mois du plan ${plan}.`,
   tyMeta: "Commande confirmée",
   etaNorth: "24–48h",
   etaHighlands: "48–72h",
@@ -365,6 +367,7 @@ const ar: Dict = {
   errOptions: "اختر كل الخيارات (المقاس، اللون…).",
   errQtyMax: (n) => `الكمية القصوى: ${n} للطلب الواحد.`,
   errTooMany: "طلبات كثيرة. حاول بعد ساعة.",
+  errMonthlyLimit: (n, plan) => `بلغت حد ${n} طلب / شهر لخطة ${plan}.`,
   tyMeta: "تم استلام طلبك",
   etaNorth: "24–48 ساعة",
   etaHighlands: "48–72 ساعة",

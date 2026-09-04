@@ -73,7 +73,7 @@ export function OnboardingForm() {
 
       {state?.error && <p role="alert" className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{state.error}</p>}
       <div className="flex items-center justify-end gap-4 border-t border-zinc-200 pt-6">
-        <p className="text-xs text-zinc-500">Plan Starter gratuit · 14 jours d’essai Growth offerts</p>
+        <p className="text-xs text-zinc-500">Plan Starter gratuit pour toujours · Sans carte bancaire · Sans limite de temps</p>
         <button type="submit" disabled={pending || !subdomain} className="db-btn !px-6 !py-2.5">
           {pending && <Loader2 className="h-4 w-4 animate-spin" />} Lancer ma boutique
         </button>

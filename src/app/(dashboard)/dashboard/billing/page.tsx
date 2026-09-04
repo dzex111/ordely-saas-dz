@@ -11,6 +11,7 @@ import { PlanCards } from "@/components/dashboard/PlanCards";
 export default async function BillingPage() {
   const { store } = await requireStore();
   const plan = getPlan(store.plan);
+  const productLimit = plan.limits.productsPerStore;
   const [history, [{ n }]] = await Promise.all([
     db.query.subscriptions.findMany({ where: eq(subscriptions.storeId, store.id), orderBy: [desc(subscriptions.createdAt)], limit: 10 }),
     db.select({ n: count() }).from(products).where(eq(products.storeId, store.id)),
@@ -19,8 +20,8 @@ export default async function BillingPage() {
     <>
       <PageHeader title="Abonnement" description="Commencez gratuitement, montez en gamme quand les commandes suivent." />
       <div className="mb-6 grid gap-4 md:grid-cols-3">
-        <div className="db-card p-5"><p className="text-xs text-zinc-500">Plan actuel</p><p className="mt-1 text-xl font-semibold">{plan.name}</p><p className="text-xs text-zinc-500">{store.planStatus === "trialing" && store.trialEndsAt ? `Essai jusqu’au ${formatDate(store.trialEndsAt)}` : "Actif"}</p></div>
-        <div className="db-card p-5"><p className="text-xs text-zinc-500">Produits</p><p className="mt-1 text-xl font-semibold">{n}{plan.productLimit ? ` / ${plan.productLimit}` : ""}</p><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-zinc-100"><div className="h-full rounded-full bg-zinc-900" style={{ width: plan.productLimit ? `${Math.min(100, (n / plan.productLimit) * 100)}%` : "8%" }} /></div></div>
+        <div className="db-card p-5"><p className="text-xs text-zinc-500">Plan actuel</p><p className="mt-1 text-xl font-semibold">{plan.name}</p><p className="text-xs text-zinc-500">Actif · {plan.limits.ordersPerMonth !== null ? `${plan.limits.ordersPerMonth} commandes / mois` : "Commandes illimitées"}</p></div>
+        <div className="db-card p-5"><p className="text-xs text-zinc-500">Produits</p><p className="mt-1 text-xl font-semibold">{n}{productLimit !== null ? ` / ${productLimit}` : ""}</p><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-zinc-100"><div className="h-full rounded-full bg-zinc-900" style={{ width: productLimit !== null ? `${Math.min(100, (n / productLimit) * 100)}%` : "8%" }} /></div></div>
         <div className="db-card p-5"><p className="text-xs text-zinc-500">Paiement</p><p className="mt-1 text-sm font-semibold">Via l’admin</p><p className="text-xs text-zinc-500">Choisissez un plan ci-dessous puis <Link href="/contact" className="font-medium text-zinc-900 underline underline-offset-2">contactez-nous via le formulaire</Link>. Rien ne change sans validation manuelle.</p></div>
       </div>
       <PlanCards current={store.plan} />

@@ -2,12 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { and, eq, gte, sql } from "drizzle-orm";
+import { and, count, eq, gte, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import { customers, orderEvents, orders, products, stores, ORDER_STATUSES, type OrderStatus } from "@/db/schema";
 import { requireStore } from "@/lib/auth";
 import { clientIp } from "@/lib/rate-limit";
+import { getPlan, startOfBillingMonth, upgradeCta } from "@/lib/plans";
 import { st, storeLangOf } from "@/lib/store-i18n";
 import { formatDZD } from "@/lib/utils";
 import { pushNotification } from "@/lib/actions/notifications";
@@ -51,6 +52,22 @@ export async function placeOrderAction(_: FormState, formData: FormData): Promis
   // Merchant-configured cap: max units of one product per order (anti bulk-fake orders).
   const qtyCap = Math.min(20, store.settings.maxQtyPerOrder ?? 5);
   if (d.qty > qtyCap) return { error: t.errQtyMax(qtyCap) };
+
+  // Monthly order entitlement (Africa/Algiers calendar month). History is preserved,
+  // only new orders past the limit are blocked — downgrade-safe by design.
+  const plan = getPlan(store.plan);
+  const orderLimit = plan.limits.ordersPerMonth;
+  if (orderLimit !== null) {
+    const periodStart = startOfBillingMonth(new Date());
+    const [{ value: monthlyCount }] = await db
+      .select({ value: count() })
+      .from(orders)
+      .where(and(eq(orders.storeId, store.id), gte(orders.createdAt, periodStart)));
+    if (monthlyCount >= orderLimit) {
+      const cta = upgradeCta(store.plan);
+      return { error: `${t.errMonthlyLimit(orderLimit, plan.name)}${cta ? ` ${cta}` : ""}` };
+    }
+  }
 
   // 5 orders / hour / IP / store — blocks fake-order floods against merchants.
   const ip = await clientIp();

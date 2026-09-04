@@ -32,7 +32,7 @@ export function ContactForm({ defaultPlan, source }: { defaultPlan: string; sour
       </div>
       <div>
         <label className="db-label" htmlFor="message">Message (optionnel)</label>
-        <textarea id="message" name="message" rows={4} maxLength={1000} className="db-input" placeholder="Ex : je veux passer au plan Growth pour ma boutique…" />
+          <textarea id="message" name="message" rows={4} maxLength={1000} className="db-input" placeholder="Ex : je veux passer au plan PRO pour ma boutique…" />
       </div>
       {state?.error && <p role="alert" className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{state.error}</p>}
       {state?.success && <p role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{state.success}</p>}

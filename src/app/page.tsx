@@ -128,16 +128,53 @@ export default async function Landing() {
         </div>
         <div className="grid gap-5 lg:grid-cols-3">
           {PLANS.map((p) => (
-            <div key={p.id} className={`flex flex-col rounded-3xl border p-7 ${p.highlight ? "border-ink bg-ink text-white shadow-2xl" : "border-zinc-200 bg-white"}`}>
+            <div key={p.id} className={`relative flex flex-col rounded-3xl border p-7 ${p.highlight ? "border-ink bg-ink text-white shadow-2xl" : "border-zinc-200 bg-white"}`}>
+              {p.badge && <span className="absolute -top-3 left-7 rounded-full bg-brand px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white">{p.badge}</span>}
               <p className="text-sm font-semibold">{p.name}</p>
               <p className="mt-4 text-4xl font-semibold tracking-tight">{p.priceMonthly === 0 ? "0 DA" : formatDZD(p.priceMonthly)}<span className={`text-sm font-normal ${p.highlight ? "text-white/60" : "text-zinc-500"}`}> /mois</span></p>
               <p className={`mt-1 text-sm ${p.highlight ? "text-white/60" : "text-zinc-500"}`}>{p.description}</p>
               <ul className="mt-6 flex-1 space-y-2.5 text-sm">
                 {p.features.map((f) => <li key={f} className="flex items-start gap-2"><Check className={`mt-0.5 h-4 w-4 shrink-0 ${p.highlight ? "text-brand" : "text-emerald-600"}`} /> {f}</li>)}
               </ul>
-              <Link href="/signup" className={`mt-8 rounded-full px-5 py-3 text-center text-sm font-semibold transition ${p.highlight ? "bg-white text-ink hover:bg-zinc-100" : "bg-ink text-white hover:bg-zinc-800"}`}>Commencer</Link>
+              <Link href="/signup" className={`mt-8 rounded-full px-5 py-3 text-center text-sm font-semibold transition ${p.highlight ? "bg-white text-ink hover:bg-zinc-100" : "bg-ink text-white hover:bg-zinc-800"}`}>{p.cta}</Link>
             </div>
           ))}
+        </div>
+        <p className="mt-8 text-center text-sm text-zinc-500">Starter gratuit pour toujours · Sans carte bancaire · Sans limite de temps.</p>
+        <div className="mx-auto mt-10 max-w-4xl overflow-hidden rounded-3xl border border-zinc-200 bg-white">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-zinc-200 text-left">
+                <th className="px-5 py-3.5 font-medium text-zinc-500">Comparer</th>
+                {PLANS.map((p) => (
+                  <th key={p.id} className="px-5 py-3.5 font-semibold">{p.name}<span className="block text-xs font-normal text-zinc-500">{p.priceMonthly === 0 ? "0 DA" : `${formatDZD(p.priceMonthly)} /mois`}</span></th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-100">
+              {[
+                ["Boutiques", PLANS.map((p) => String(p.limits.stores))],
+                ["Produits / boutique", PLANS.map((p) => p.limits.productsPerStore !== null ? String(p.limits.productsPerStore) : "—")],
+                ["Commandes / mois", PLANS.map((p) => p.limits.ordersPerMonth !== null ? p.limits.ordersPerMonth.toLocaleString("fr-FR") : "—")],
+                ["Utilisateurs", PLANS.map((p) => String(p.limits.users))],
+                ["Confirmations IA / mois", PLANS.map((p) => String(p.limits.aiConfirmationsPerMonth))],
+                ["Domaine personnalisé", PLANS.map((p) => (p.flags.customDomain ? "✓" : "—"))],
+                ["Export CSV", PLANS.map((p) => (p.flags.csvExport ? "✓" : "—"))],
+                ["Analytics avancés", PLANS.map((p) => (p.flags.advancedAnalytics ? "✓" : "—"))],
+                ["Équipe & rôles", PLANS.map((p) => (p.flags.teamManagement ? "✓" : "—"))],
+                ["Intégrations livraison", PLANS.map((p) => (p.flags.shippingIntegrations ? "Bientôt" : "—"))],
+                ["Automatisations", PLANS.map((p) => (p.flags.advancedAutomation ? "Avancées (bientôt)" : p.flags.basicAutomation ? "De base (bientôt)" : "—"))],
+                ["Support prioritaire", PLANS.map((p) => (p.flags.prioritySupport ? "✓" : "—"))],
+              ].map(([label, vals]) => (
+                <tr key={label as string}>
+                  <td className="px-5 py-2.5 text-zinc-500">{label}</td>
+                  {(vals as string[]).map((v, i) => (
+                    <td key={i} className="px-5 py-2.5 font-medium">{v}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
 

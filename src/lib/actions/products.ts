@@ -7,7 +7,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { products, type ProductFeature, type ProductOption } from "@/db/schema";
 import { requireStore } from "@/lib/auth";
-import { getPlan } from "@/lib/plans";
+import { getPlan, upgradeCta } from "@/lib/plans";
 import { uploadImage } from "@/lib/storage";
 import { slugify } from "@/lib/utils";
 import type { FormState } from "./auth";
@@ -86,10 +86,13 @@ export async function createProductAction(_: FormState, formData: FormData): Pro
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
   const plan = getPlan(store.plan);
-  if (plan.productLimit !== null) {
+  // Downgrade-safe: existing products are preserved, only creation past the limit is blocked.
+  const productLimit = plan.limits.productsPerStore;
+  if (productLimit !== null) {
     const [{ value }] = await db.select({ value: count() }).from(products).where(eq(products.storeId, store.id));
-    if (value >= plan.productLimit) {
-      return { error: `Limite du plan ${plan.name} atteinte (${plan.productLimit} produits). Passez au plan supérieur.` };
+    if (value >= productLimit) {
+      const cta = upgradeCta(store.plan);
+      return { error: `Vous avez atteint la limite de ${productLimit} produits du plan ${plan.name}.${cta ? ` ${cta}` : ""}` };
     }
   }
 

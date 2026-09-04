@@ -18,11 +18,11 @@ export default async function ProductsPage() {
   const { store } = await requireStore();
   const rows = await db.query.products.findMany({ where: eq(products.storeId, store.id), orderBy: [desc(products.featured), asc(products.sortOrder), desc(products.createdAt)] });
   const plan = getPlan(store.plan);
-  const limit = plan.productLimit;
+  const limit = plan.limits.productsPerStore;
 
   return (
     <>
-      <PageHeader title="Produits" description={limit ? `${rows.length} / ${limit} produits sur le plan ${plan.name}.` : `${rows.length} produits · illimité.`} action={<Link href="/dashboard/products/new" className="db-btn"><Plus className="h-4 w-4" /> Nouveau produit</Link>} />
+      <PageHeader title="Produits" description={limit !== null ? `${rows.length} / ${limit} produits sur le plan ${plan.name}.` : `${rows.length} produits.`} action={<Link href="/dashboard/products/new" className="db-btn"><Plus className="h-4 w-4" /> Nouveau produit</Link>} />
       {rows.length === 0 ? (
         <EmptyState title="Votre catalogue est vide" description="Ajoutez votre premier produit : photos, prix, histoire, options. Il apparaît instantanément sur votre boutique avec un formulaire de commande COD." cta={{ href: "/dashboard/products/new", label: "Créer mon premier produit" }} />
       ) : (

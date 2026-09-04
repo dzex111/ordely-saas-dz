@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
-import { desc, eq, gte } from "drizzle-orm";
+import { count, desc, eq, gte, and } from "drizzle-orm";
 import { db } from "@/db";
 import { orders, products, stores, subscriptions, users, type PlanId } from "@/db/schema";
+import { getPlan, startOfBillingMonth } from "@/lib/plans";
 import { pushNotification } from "@/lib/actions/notifications";
 
 /* Telegram Super-Admin — owner only. Merchants never see this.
@@ -30,23 +31,25 @@ const btn = (text: string, callback_data: string) => ({ text, callback_data });
 async function storeCard(chatId: ChatId, storeId: string, messageId?: number) {
   const [s] = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
   if (!s) return;
-  const [pc, oc, owner] = await Promise.all([
+  const [pc, oc, owner, mc] = await Promise.all([
     db.select({ n: products.id }).from(products).where(eq(products.storeId, s.id)).limit(10000).then((r) => r.length),
     db.select({ n: orders.id }).from(orders).where(eq(orders.storeId, s.id)).limit(100000).then((r) => r.length),
     db.select({ email: users.email }).from(users).where(eq(users.id, s.ownerId)).limit(1).then((r) => r[0] ?? null),
+    db.select({ value: count() }).from(orders).where(and(eq(orders.storeId, s.id), gte(orders.createdAt, startOfBillingMonth(new Date())))).then((r) => Number(r[0]?.value ?? 0)),
   ]);
+  const limit = getPlan(s.plan).limits.ordersPerMonth;
   const text = [
     `<b>المتجر:</b> ${esc(s.name)}`,
     `<b>ID:</b> ${esc(s.publicId ?? "—")}`,
     `<b>الرابط:</b> ${esc(s.subdomain)}`,
-    `<b>الخطة الحالية:</b> ${esc(s.plan)} (${esc(s.planStatus)})`,
-    `<b>التعليق الإداري:</b> ${s.suspended ? "موقوف" : "يعمل"}`,
+    `<b>الخطة الحالية:</b> ${esc(getPlan(s.plan).name)} (${esc(s.planStatus)})`,
+    `<b>طلبات الشهر:</b> ${mc}${limit !== null ? ` / ${limit}` : ""}`,
     `<b>المنتجات:</b> ${pc} | <b>الطلبات:</b> ${oc}`,
     `<b>المالك:</b> ${esc(owner?.email ?? s.ownerId)}`,
   ].join("\n");
   const markup = {
     inline_keyboard: [
-      [btn("Starter", `plan:${s.id}:starter`), btn("Growth", `plan:${s.id}:growth`), btn("Scale", `plan:${s.id}:scale`)],
+      [btn("Starter", `plan:${s.id}:starter`), btn("PRO", `plan:${s.id}:pro`), btn("BUSINESS", `plan:${s.id}:business`)],
       [btn(s.suspended ? "فك التعليق" : "تعليق المتجر", `pub:${s.id}`), btn("حذف المتجر", `del:${s.id}`)],
     ],
   };
@@ -79,7 +82,7 @@ async function handleUpdate(update: {
       await db.insert(subscriptions).values({ storeId: id, plan, status: "active", provider: "manual", metadata: { source: "telegram-admin" } });
       await pushNotification({ storeId: id, type: "plan_changed", title: `Plan changé — ${plan}`, body: "Activé par l’admin. Votre boutique est à jour.", link: "/dashboard/billing" });
       await storeCard(chatId, id, cb.message?.message_id);
-      await tg("sendMessage", { chat_id: chatId, text: `تم تغيير الاشتراك إلى <b>${esc(plan)}</b>.`, parse_mode: "HTML" });
+      await tg("sendMessage", { chat_id: chatId, text: `تم تغيير الاشتراك إلى <b>${esc(getPlan(plan).name)} — ${getPlan(plan).priceMonthly.toLocaleString("fr-FR")} DA/mois</b>.`, parse_mode: "HTML" });
       return;
     }
     if (action === "pulse") {

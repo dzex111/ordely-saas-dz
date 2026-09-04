@@ -8,6 +8,7 @@ import { db } from "@/db";
 import { products, stores, subscriptions, type BrandOverrides, type StoreContent, type StoreSettings } from "@/db/schema";
 import { getCurrentStore, requireStore, requireUser } from "@/lib/auth";
 import { getTemplate, TEMPLATE_IDS } from "@/lib/templates";
+import { getPlan, upgradeCta } from "@/lib/plans";
 import { generateStorePublicId } from "@/lib/store-id";
 import { isValidSubdomain, slugify } from "@/lib/utils";
 import { WILAYAS } from "@/lib/algeria";
@@ -45,6 +46,18 @@ export async function createStoreAction(_: FormState, formData: FormData): Promi
   if (taken) return { error: "Ce sous-domaine est déjà pris." };
 
   const tpl = getTemplate(template);
+  // Store entitlement: the merchant's allowance is the best plan across owned stores
+  // (Starter = 1 boutique forever, BUSINESS = 3). Extras are blocked, never deleted.
+  const owned = await db.query.stores.findMany({ where: eq(stores.ownerId, user.id), columns: { plan: true } });
+  const allowance =
+    owned.length === 0
+      ? getPlan("starter").limits.stores
+      : Math.max(...owned.map((o) => getPlan(o.plan).limits.stores));
+  if (owned.length >= allowance) {
+    const best = owned.length === 0 ? "starter" : owned.map((o) => o.plan).sort((a, b) => getPlan(b).priceMonthly - getPlan(a).priceMonthly)[0];
+    const cta = upgradeCta(best);
+    return { error: `Limite de ${allowance} boutique${allowance > 1 ? "s" : ""} atteinte.${cta ? ` ${cta}` : ""}` };
+  }
   let publicId = generateStorePublicId();
   for (let i = 0; i < 5; i++) {
     const clash = await db.query.stores.findFirst({ where: eq(stores.publicId, publicId) });
@@ -62,7 +75,8 @@ export async function createStoreAction(_: FormState, formData: FormData): Promi
       vertical: tpl.vertical,
       tagline: tpl.tagline,
       content: { phone: phone || undefined, whatsapp: phone || undefined },
-      trialEndsAt: new Date(Date.now() + 14 * 86400_000),
+      // Starter is NOT a trial: no expiration, no card, no time limit.
+      trialEndsAt: null,
     })
     .returning();
 

@@ -33,7 +33,7 @@ export async function createContactRequestAction(_: FormState, formData: FormDat
 
   const plan = (PLAN_IDS as readonly string[]).includes(parsed.data.plan)
     ? (parsed.data.plan as PlanId)
-    : ("growth" as PlanId);
+    : ("pro" as PlanId);
   const source = parsed.data.source === "plan" ? "plan" : "contact";
 
   const store = await getCurrentStore().catch(() => null);

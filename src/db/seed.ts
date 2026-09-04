@@ -51,9 +51,9 @@ async function main() {
         tagline: tpl.tagline,
         content: { phone: d.phone, whatsapp: d.phone, instagram: `@${d.sub}`, email: `contact@${d.sub}.dz` },
         settings: { currency: "DZD", language: "fr", homeDeliveryFee: 600, deskDeliveryFee: 400, freeShippingThreshold: isDemo ? 15000 : null, rateOverrides: isDemo ? { "16": { home: 400, desk: 250 }, "31": { home: 500, desk: 350 }, "01": { home: 1200, desk: 900 } } : {}, returnDays: 14, maxQtyPerOrder: 5 },
-        plan: isDemo ? "growth" : "starter",
-        planStatus: isDemo ? "trialing" : "active",
-        trialEndsAt: isDemo ? new Date(Date.now() + 12 * 86400_000) : null,
+        plan: isDemo ? "pro" : "starter",
+        planStatus: "active",
+        trialEndsAt: null,
       })
       .returning();
     await db.insert(subscriptions).values({ storeId: store.id, plan: store.plan, status: store.planStatus, provider: "manual" });

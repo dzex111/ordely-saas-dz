@@ -2,13 +2,14 @@ import Link from "next/link";
 import { Mail, MessageCircle } from "lucide-react";
 import { ContactForm } from "@/components/ui/ContactForm";
 import { SUPPORT_EMAIL, SUPPORT_MAILTO, SUPPORT_WHATSAPP_DISPLAY, SUPPORT_WHATSAPP_URL } from "@/lib/site-contact";
+import { getPlan } from "@/lib/plans";
 import { PLAN_IDS, type PlanId } from "@/db/schema";
 
 export const metadata = { title: "Contact" };
 
 export default async function ContactPage({ searchParams }: { searchParams: Promise<{ plan?: string; source?: string }> }) {
   const { plan, source } = await searchParams;
-  const defaultPlan: PlanId = (PLAN_IDS as readonly string[]).includes(plan ?? "") ? (plan as PlanId) : "growth";
+  const defaultPlan: PlanId = (PLAN_IDS as readonly string[]).includes(plan ?? "") ? (plan as PlanId) : "pro";
   const fromPlan = source === "plan";
   return (
     <div className="min-h-dvh bg-paper text-ink">
@@ -20,7 +21,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
       </header>
       <main className="mx-auto max-w-3xl px-6 py-14">
         <p className="text-xs font-semibold uppercase tracking-widest text-brand">Contact admin</p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">{fromPlan ? `Demande d’abonnement ${defaultPlan === "growth" ? "Growth" : defaultPlan === "scale" ? "Scale" : "Starter"}` : "Changer de plan ? On s’en occupe."}</h1>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">{fromPlan ? `Demande d’abonnement ${getPlan(defaultPlan).name}` : "Changer de plan ? On s’en occupe."}</h1>
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-zinc-600">
           Les changements de plan sont validés manuellement par l’admin après paiement.
           Remplissez ce formulaire — votre plan actuel reste actif, rien ne change sans validation.
