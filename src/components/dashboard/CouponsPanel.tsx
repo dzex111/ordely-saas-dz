@@ -39,8 +39,8 @@ export function CouponsPanel({ rows }: { rows: CouponRow[] }) {
             <option value="fixed">DA Fixe</option>
           </select>
           <input name="value" type="number" min={1} required placeholder="Valeur" className="db-input" aria-label="Valeur" />
-          <input name="minSubtotal" type="number" min={0} defaultValue={0} className="db-input" aria-label="Panier min (DA)" title="Panier min (DA)" />
-          <input name="maxUses" type="number" min={1} placeholder="Usages max (∞)" className="db-input" aria-label="Usages max" />
+                    <input name="minSubtotal" type="number" min={0} defaultValue={0} placeholder="Min (DA)" className="db-input" aria-label="Panier min (DA)" title="Montant minimum du panier pour que le code s’applique." />
+          <input name="maxUses" type="number" min={1} placeholder="Usages max (∞)" className="db-input" aria-label="Usages max" title="Nombre d’utilisations autorisées (laissez vide = illimité)." />
           <input name="startsAt" type="date" className="db-input" aria-label="Début (optionnel)" title="Début (optionnel)" />
           <input name="endsAt" type="date" className="db-input" aria-label="Fin (optionnel)" title="Fin (optionnel)" />
           <button disabled={pending} className="db-btn md:col-span-1">

@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { and, count, eq, gte, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import { customers, orderEvents, orders, products, stores, ORDER_STATUSES, type OrderStatus } from "@/db/schema";
+import { customers, coupons, orderEvents, orders, products, stores, ORDER_STATUSES, type OrderStatus } from "@/db/schema";
 import { requireStore } from "@/lib/auth";
 import { denyUnless } from "@/lib/team";
 import { clientIp } from "@/lib/rate-limit";
@@ -15,6 +15,7 @@ import { formatDZD } from "@/lib/utils";
 import { pushNotification } from "@/lib/actions/notifications";
 import { normalizePhone, wilayaByCode } from "@/lib/algeria";
 import { computeDeliveryFee, ORDER_TRANSITIONS } from "@/lib/commerce";
+import { calcDiscount, checkCoupon, normalizeCouponCode } from "@/lib/coupons";
 import type { FormState } from "./auth";
 
 /* ----------------------------- public checkout ----------------------------- */
@@ -31,8 +32,9 @@ const checkoutSchema = z.object({
   deliveryType: z.enum(["home", "desk"]).default("home"),
   qty: z.coerce.number().int().min(1).max(20).default(1),
   variant: z.string().trim().max(120).default(""),
-  note: z.string().trim().max(300).default(""),
+    note: z.string().trim().max(300).default(""),
   website: z.string().max(0).optional(), // honeypot
+  couponCode: z.string().trim().max(32).default(""),
 });
 
 export async function placeOrderAction(_: FormState, formData: FormData): Promise<FormState> {
@@ -94,9 +96,24 @@ export async function placeOrderAction(_: FormState, formData: FormData): Promis
     if (!valid) return { error: t.errOptions };
   }
 
-  const subtotal = product.price * d.qty;
-  const deliveryFee = computeDeliveryFee(store.settings, wilaya.code, d.deliveryType, subtotal);
-  const total = subtotal + deliveryFee;
+    const subtotal = product.price * d.qty;
+  // Coupon (server-verified): client preview is re-checked here so the merchant is
+  // never short-changed — discount applies to the subtotal BEFORE delivery, matching the checkout.
+  let discount = 0;
+  let couponCode: string | null = null;
+  let couponId: string | undefined;
+  if (d.couponCode) {
+    const row = await db.query.coupons.findFirst({
+      where: and(eq(coupons.code, normalizeCouponCode(d.couponCode)), eq(coupons.storeId, store.id)),
+    });
+    const checked = checkCoupon(row ?? null, subtotal);
+    if (!checked.ok) return { error: t.errCoupon };
+    discount = calcDiscount(checked.coupon, subtotal);
+    couponCode = checked.coupon.code;
+    couponId = row?.id;
+  }
+  const deliveryFee = computeDeliveryFee(store.settings, wilaya.code, d.deliveryType, subtotal - discount);
+  const total = subtotal - discount + deliveryFee;
 
   // Idempotency: double-submit or retry returns the same order.
   const dup = await db.query.orders.findFirst({
@@ -146,15 +163,21 @@ export async function placeOrderAction(_: FormState, formData: FormData): Promis
           address: d.address,
           deliveryType: d.deliveryType,
           items: [{ productId: product.id, name: product.name, price: product.price, qty: d.qty, variant: d.variant || null, image: product.images[0] ?? null }],
-          subtotal,
+                    subtotal,
           deliveryFee,
           total,
+          discount,
+          couponCode,
           ip,
           customerNote: d.note,
         })
         .returning({ id: orders.id });
 
       await tx.insert(orderEvents).values({ orderId: order.id, fromStatus: null, toStatus: "pending", note: "Commande reçue depuis la boutique." });
+      // Burn one coupon usage inside the same transaction as the order it paid for.
+      if (couponId) {
+        await tx.update(coupons).set({ usedCount: sql`${coupons.usedCount} + 1` }).where(eq(coupons.id, couponId));
+      }
       if (product.stock !== null) {
         const [row] = await tx
           .update(products)

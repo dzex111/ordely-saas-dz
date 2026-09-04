@@ -126,12 +126,13 @@ type Dict = {
   errPhone: string;
   errWilaya: string;
   errAddress: string;
-  errShopDown: string;
+    errShopDown: string;
   errNoProduct: string;
   errEmpty: string;
   errStockLeft: (n: number) => string;
   errOptions: string;
   errQtyMax: (n: number) => string;
+  errCoupon: string;
   errTooMany: string;
   errMonthlyLimit: (n: number, plan: string) => string;
   tyMeta: string;
@@ -257,7 +258,8 @@ const fr: Dict = {
   errEmpty: "Produit épuisé.",
   errStockLeft: (n) => `Seulement ${n} en stock.`,
   errOptions: "Choisissez toutes les options (taille, couleur…).",
-  errQtyMax: (n) => `Quantité maximale : ${n} par commande.`,
+    errQtyMax: (n) => `Quantité maximale : ${n} par commande.`,
+  errCoupon: "Code promo invalide, expiré ou épuisé.",
   errTooMany: "Trop de commandes. Réessayez dans une heure.",
   errMonthlyLimit: (n, plan) => `Vous avez atteint la limite de ${n} commandes / mois du plan ${plan}.`,
   tyMeta: "Commande confirmée",
@@ -383,7 +385,8 @@ const ar: Dict = {
   errEmpty: "نفدت الكمية.",
   errStockLeft: (n) => `المتبقي ${n} فقط.`,
   errOptions: "اختر كل الخيارات (المقاس، اللون…).",
-  errQtyMax: (n) => `الكمية القصوى: ${n} للطلب الواحد.`,
+    errQtyMax: (n) => `الكمية القصوى: ${n} للطلب الواحد.`,
+  errCoupon: "كود غير صالح أو منتهي أو مستخدم.",
   errTooMany: "طلبات كثيرة. حاول بعد ساعة.",
   errMonthlyLimit: (n, plan) => `بلغت حد ${n} طلب / شهر لخطة ${plan}.`,
   tyMeta: "تم استلام طلبك",

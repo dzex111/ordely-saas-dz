@@ -36,3 +36,14 @@ export async function markAllNotificationsRead() {
   revalidatePath("/dashboard", "layout");
   return { success: "ok" };
 }
+
+/** Mark a single notification read — scoped to the merchant's store (id can't be hijacked). */
+export async function markNotificationRead(id: string) {
+  const { store } = await requireStore();
+  await db
+    .update(notifications)
+    .set({ readAt: new Date() })
+    .where(and(eq(notifications.id, id), eq(notifications.storeId, store.id)));
+  revalidatePath("/dashboard", "layout");
+  return { success: "ok" };
+}
