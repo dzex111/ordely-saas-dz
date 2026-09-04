@@ -86,7 +86,7 @@ export function NotificationsBell({ items, unread }: { items: BellItem[]; unread
         createPortal(
           <div
             ref={box}
-            className="fixed z-[200] mt-2 w-[340px] max-h-[calc(100vh-4rem)] overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl"
+            className="fixed z-[300] mt-2 w-[340px] max-h-[calc(100vh-4rem)] overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl"
             style={{ top: pos.top, right: pos.right }}
           >
             <div className="flex items-center justify-between border-b border-zinc-100 px-4 py-2.5">
