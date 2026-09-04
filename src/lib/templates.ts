@@ -52,6 +52,8 @@ export type TemplateConfig = {
     imageRatio: string; // css aspect-ratio for cards
   };
   defaults: Required<Pick<StoreContent, "heroEyebrow" | "heroHeadline" | "heroSub" | "heroCta" | "trustItems" | "aboutTitle" | "aboutText">>;
+  /** Arabic twin of `defaults`. REQUIRED so every current and future template is bilingual by construction. */
+  defaultsAr: Required<Pick<StoreContent, "heroEyebrow" | "heroHeadline" | "heroSub" | "heroCta" | "trustItems" | "aboutTitle" | "aboutText">>;
   sampleProducts: { name: string; price: number; compareAt?: number; short: string; image: string; features: { title: string; text: string }[]; options?: { name: string; values: string[] }[] }[];
 };
 
@@ -77,6 +79,15 @@ export const TEMPLATES: TemplateConfig[] = [
       trustItems: ["Paiement à la livraison", "Livraison 58 wilayas", "Échange sous 14 jours"],
       aboutTitle: "L’atelier",
       aboutText: "Chaque pièce est dessinée à Alger et confectionnée en petites séries. Nous privilégions les matières naturelles et les finitions qui traversent les saisons.",
+    },
+    defaultsAr: {
+      heroEyebrow: "تشكيلة جديدة",
+      heroHeadline: "قطع مصممة لتدوم، تُلبس لتُلاحظ.",
+      heroSub: "قصّات دقيقة وخامات راقية، توصيل لكل الجزائر. تدفع عند الاستلام.",
+      heroCta: "اكتشف التشكيلة",
+      trustItems: ["الدفع عند الاستلام", "التوصيل لـ 58 ولاية", "تبديل خلال 14 يوماً"],
+      aboutTitle: "المشغل",
+      aboutText: "كل قطعة تُصمم في الجزائر وتُنتج بكميات محدودة. نفضل الخامات الطبيعية والتشطيبات التي تعيش طويلاً.",
     },
     sampleProducts: [
       { name: "Trench Sahel en lin", price: 12900, compareAt: 15900, short: "Trench léger en lin lavé, coupe droite, ceinture amovible.", image: img("photo-1539533018447-63fcce2678e3"), features: [{ title: "Matière", text: "100% lin lavé, 240g" }, { title: "Coupe", text: "Droite, tombe sur la hanche" }, { title: "Entretien", text: "Lavage 30°, séchage à plat" }], options: [{ name: "Taille", values: ["S", "M", "L", "XL"] }, { name: "Couleur", values: ["Sable", "Noir"] }] },
@@ -104,6 +115,15 @@ export const TEMPLATES: TemplateConfig[] = [
       aboutTitle: "Pourquoi nous",
       aboutText: "Nous importons directement auprès des fabricants agréés et vérifions chaque unité. Pas de contrefaçon, pas de surprise.",
     },
+    defaultsAr: {
+      heroEyebrow: "ضمان 12 شهراً مشمول",
+      heroHeadline: "تقنية تستحق مكتبك.",
+      heroSub: "منتجات أصلية، تُفحص قبل الشحن. تدفع عند الاستلام في كل الجزائر.",
+      heroCta: "شاهد المنتجات",
+      trustItems: ["منتجات أصلية 100%", "فحص قبل الإرسال", "ضمان 12 شهراً", "الدفع عند الاستلام"],
+      aboutTitle: "لماذا نحن",
+      aboutText: "نستورد مباشرة من المصنعين المعتمدين ونفحص كل قطعة. بدون تقليد وبدون مفاجآت.",
+    },
     sampleProducts: [
       { name: "Écouteurs ANC Pro 2", price: 14500, compareAt: 18900, short: "Réduction de bruit active hybride, 36h d’autonomie, Bluetooth 5.3.", image: img("photo-1590658268037-6bf12165a8df"), features: [{ title: "Autonomie", text: "36h avec boîtier" }, { title: "ANC", text: "Hybride –42 dB" }, { title: "Codec", text: "AAC, LDAC" }], options: [{ name: "Couleur", values: ["Graphite", "Blanc"] }] },
       { name: "Clavier mécanique 75%", price: 19900, short: "Switches linéaires pré-lubrifiés, hot-swap, gasket mount, RGB sud.", image: img("photo-1618384887929-16ec33fab9ef"), features: [{ title: "Switches", text: "Linéaires 45g, hot-swap" }, { title: "Connexion", text: "USB-C, 2.4G, BT" }], options: [{ name: "Layout", values: ["AZERTY", "QWERTY"] }] },
@@ -129,6 +149,15 @@ export const TEMPLATES: TemplateConfig[] = [
       trustItems: ["Sans parabènes", "Non testé sur animaux", "Livraison discrète", "Satisfaite ou échangée"],
       aboutTitle: "Notre promesse",
       aboutText: "Des formules courtes, des actifs dosés efficacement, et une transparence totale sur ce que vous appliquez sur votre peau.",
+    },
+    defaultsAr: {
+      heroEyebrow: "تركيبات نظيفة · مختبرة جلدياً",
+      heroHeadline: "بشرة هادئة وروتين يشبهك.",
+      heroSub: "عناية لطيفة بدون عطور قوية، تصلك للمنزل. تدفع عند الاستلام.",
+      heroCta: "ركّب روتينك",
+      trustItems: ["بدون بارابين", "غير مجرب على الحيوانات", "توصيل بسرية", "رضا أو تبديل"],
+      aboutTitle: "وعدنا",
+      aboutText: "تركيبات قصيرة ومكونات فعالة بجرعات مدروسة، وشفافية كاملة حول ما تضعه على بشرتك.",
     },
     sampleProducts: [
       { name: "Sérum Éclat Vitamine C", price: 4200, compareAt: 5200, short: "Sérum 15% vitamine C stabilisée, unifie et illumine en 4 semaines.", image: img("photo-1620916566398-39f1143ab7be"), features: [{ title: "Actifs", text: "Vit. C 15%, acide férulique" }, { title: "Texture", text: "Fluide, absorption rapide" }, { title: "Usage", text: "Matin, avant SPF" }] },
@@ -156,6 +185,15 @@ export const TEMPLATES: TemplateConfig[] = [
       aboutTitle: "La maison",
       aboutText: "Nous travaillons avec des artisans de Kabylie, de Ghardaïa et d’Oran pour des pièces qui gardent la trace de la main.",
     },
+    defaultsAr: {
+      heroEyebrow: "صناعة يدوية · كميات محدودة",
+      heroHeadline: "قطع تجعل البيت مسكوناً بالدفء.",
+      heroSub: "سيراميك وكتان وخشب زيتون. توصيل بعناية لكل الجزائر والدفع عند الاستلام.",
+      heroCta: "استكشف المنزل",
+      trustItems: ["تغليف مقوى", "التوصيل لـ 58 ولاية", "تعويض الكسر", "الدفع عند الاستلام"],
+      aboutTitle: "الدار",
+      aboutText: "نعمل مع حرفيين من القبائل وغرداية ووهران لقطع تحمل بصمة اليد.",
+    },
     sampleProducts: [
       { name: "Vase céramique Tassili", price: 5600, short: "Vase tourné main, émail mat sable, 28 cm.", image: img("photo-1578500494198-246f612d3b3d"), features: [{ title: "Matière", text: "Grès émaillé" }, { title: "Hauteur", text: "28 cm" }] },
       { name: "Plaid lin lavé Aurès", price: 7900, compareAt: 9500, short: "Plaid 130 × 180 cm en lin lavé, doux dès le premier jour.", image: img("photo-1522758971460-1d21eed7dc1d"), features: [{ title: "Matière", text: "100% lin lavé" }, { title: "Dimensions", text: "130 × 180 cm" }], options: [{ name: "Couleur", values: ["Ocre", "Argile", "Olive"] }] },
@@ -181,6 +219,15 @@ export const TEMPLATES: TemplateConfig[] = [
       trustItems: ["Authenticité garantie", "Expédition 24h", "Retour 14 jours", "COD partout"],
       aboutTitle: "Le crew",
       aboutText: "Nous testons chaque produit à la salle avant de le mettre en ligne. Si ça ne tient pas la distance, ce n’est pas ici.",
+    },
+    defaultsAr: {
+      heroEyebrow: "شحن خلال 24 ساعة",
+      heroHeadline: "درّب. استشفِ. كرر.",
+      heroSub: "معدات وتغذية مختارة من رياضيين. تدفع عند الاستلام.",
+      heroCta: "تسوّق الآن",
+      trustItems: ["أصالة مضمونة", "شحن 24 ساعة", "إرجاع 14 يوماً", "الدفع عند الاستلام في كل مكان"],
+      aboutTitle: "الفريق",
+      aboutText: "نجرب كل منتج في القاعة قبل عرضه. ما لا يصمد لا مكان له هنا.",
     },
     sampleProducts: [
       { name: "Whey Isolate 2kg", price: 11900, compareAt: 13500, short: "90% protéines, 0 sucre, digestion rapide. 66 doses.", image: img("photo-1593095948071-474c5cc2989d"), features: [{ title: "Protéines", text: "27g / dose" }, { title: "Doses", text: "66" }], options: [{ name: "Goût", values: ["Chocolat", "Vanille", "Fraise"] }] },
@@ -208,6 +255,15 @@ export const TEMPLATES: TemplateConfig[] = [
       aboutTitle: "La maison",
       aboutText: "Nous sélectionnons des pièces intemporelles auprès de maisons reconnues. Chaque commande est vérifiée, scellée et suivie.",
     },
+    defaultsAr: {
+      heroEyebrow: "دار مؤسسة في الجزائر",
+      heroHeadline: "الأناقة تُلبس ولا تُصرخ.",
+      heroSub: "قطع أصلية، علبة هدية، توصيل مؤمّن. تدفع عند التسليم يداً بيد.",
+      heroCta: "شاهد التشكيلة",
+      trustItems: ["شهادة أصالة", "علبة هدية", "توصيل مؤمّن", "الدفع عند الاستلام"],
+      aboutTitle: "الدار",
+      aboutText: "ننتقي قطعاً خالدة من دور معروفة. كل طلب يُفحص ويُختم ويُتتبع.",
+    },
     sampleProducts: [
       { name: "Montre Automatique Sirocco", price: 48000, short: "Mouvement automatique, saphir, bracelet cuir italien.", image: img("photo-1524592094714-0f0654e20314"), features: [{ title: "Mouvement", text: "Automatique 21 rubis" }, { title: "Verre", text: "Saphir" }, { title: "Étanchéité", text: "5 ATM" }] },
       { name: "Eau de Parfum Oud Royal", price: 15500, compareAt: 18000, short: "Oud, safran, rose de Taïf. Tenue 12h+. 100 ml.", image: img("photo-1541643600914-78b084683601"), features: [{ title: "Notes", text: "Oud, safran, rose" }, { title: "Format", text: "100 ml" }] },
@@ -234,6 +290,15 @@ export const TEMPLATES: TemplateConfig[] = [
       aboutTitle: "Nos producteurs",
       aboutText: "Nous achetons en direct auprès de coopératives et de familles productrices. Prix justes pour eux, qualité garantie pour vous.",
     },
+    defaultsAr: {
+      heroEyebrow: "من المنتج إلى مائدتك",
+      heroHeadline: "طعم الأرض الجزائرية يصلك للمنزل.",
+      heroSub: "تمر دقلة نور وزيت زيتون القبائل وعسل الجبل. تدفع عند الاستلام.",
+      heroCta: "املأ سلتك",
+      trustItems: ["محصول السنة", "منتجون معروفون", "توصيل سريع", "الدفع عند الاستلام"],
+      aboutTitle: "منتجونا",
+      aboutText: "نشتري مباشرة من تعاونيات وعائلات منتجة. أسعار عادلة لهم وجودة مضمونة لك.",
+    },
     sampleProducts: [
       { name: "Dattes Deglet Nour 1kg", price: 1800, short: "Branchées, récolte Tolga, calibre premium, sucrées et fondantes.", image: img("photo-1601045569976-699ab3c3ce8b"), features: [{ title: "Origine", text: "Tolga, Biskra" }, { title: "Poids", text: "1 kg" }] },
       { name: "Huile d’olive extra vierge 1L", price: 2400, compareAt: 2800, short: "Première pression à froid, acidité < 0,3%, Kabylie.", image: img("photo-1474979266404-7eaacbcd87c5"), features: [{ title: "Acidité", text: "< 0,3%" }, { title: "Origine", text: "Béjaïa" }] },
@@ -259,8 +324,9 @@ function isHex(v?: string): v is string {
 }
 
 /** Merge template defaults with merchant overrides into CSS variables + content. */
-export function resolveTheme(store: Pick<Store, "template" | "brand" | "content">): ResolvedTheme {
+export function resolveTheme(store: Pick<Store, "template" | "brand" | "content" | "settings">): ResolvedTheme {
   const template = getTemplate(store.template);
+  const base = store.settings.language === "ar" ? template.defaultsAr : template.defaults;
   const b: BrandOverrides = store.brand ?? {};
   const c = template.colors;
   const heading = FONT_OPTIONS[(b.headingFont as FontKey) in FONT_OPTIONS ? (b.headingFont as FontKey) : template.fonts.heading];
@@ -283,7 +349,7 @@ export function resolveTheme(store: Pick<Store, "template" | "brand" | "content"
   };
   // If merchant customised primary, derive readable foreground.
   if (isHex(b.primary)) cssVars["--primary-fg"] = contrastFg(b.primary);
-  const content = { ...template.defaults, ...stripEmpty(store.content ?? {}) };
+  const content = { ...base, ...stripEmpty(store.content ?? {}) };
   return { template, cssVars, content };
 }
 
