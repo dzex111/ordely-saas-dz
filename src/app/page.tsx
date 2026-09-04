@@ -161,7 +161,6 @@ export default async function Landing() {
                 ["Produits / boutique", PLANS.map((p) => p.limits.productsPerStore !== null ? String(p.limits.productsPerStore) : "—")],
                 ["Commandes / mois", PLANS.map((p) => p.limits.ordersPerMonth !== null ? p.limits.ordersPerMonth.toLocaleString("fr-FR") : "—")],
                 ["Utilisateurs", PLANS.map((p) => String(p.limits.users))],
-                ["Confirmations IA / mois", PLANS.map((p) => String(p.limits.aiConfirmationsPerMonth))],
                 ["Domaine personnalisé", PLANS.map((p) => (p.flags.customDomain ? "✓" : "—"))],
                 ["Export CSV", PLANS.map((p) => (p.flags.csvExport ? "✓" : "—"))],
                 ["Analytics avancés", PLANS.map((p) => (p.flags.advancedAnalytics ? "✓" : "—"))],
@@ -203,7 +202,9 @@ export default async function Landing() {
       <footer className="border-t border-zinc-200">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-10 text-sm text-zinc-500 md:flex-row">
           <p className="flex items-center gap-2"><img src="/logo.svg" alt="ORDELY" className="h-5 w-auto" /> · Le Shopify du COD, né à Alger.</p>
-          <div className="flex gap-6"><a href="#templates">Templates</a><a href="#pricing">Tarifs</a><a href="#contact">Contact</a><Link href="/login">Connexion</Link></div>
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            <a href="#templates">Templates</a><a href="#pricing">Tarifs</a><a href="#contact">Contact</a><Link href="/login">Connexion</Link><Link href="/privacy">Confidentialité</Link><Link href="/terms">Conditions</Link>
+          </div>
         </div>
       </footer>
     </div>
