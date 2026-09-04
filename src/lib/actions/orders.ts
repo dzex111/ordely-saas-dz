@@ -2,11 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, gte, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import { customers, orderEvents, orders, products, stores, ORDER_STATUSES, type OrderStatus } from "@/db/schema";
 import { requireStore } from "@/lib/auth";
+import { clientIp } from "@/lib/rate-limit";
 import { normalizePhone, wilayaByCode } from "@/lib/algeria";
 import { computeDeliveryFee, ORDER_TRANSITIONS } from "@/lib/commerce";
 import type { FormState } from "./auth";
@@ -42,6 +43,16 @@ export async function placeOrderAction(_: FormState, formData: FormData): Promis
 
   const store = await db.query.stores.findFirst({ where: eq(stores.id, d.storeId) });
   if (!store || !store.published || store.suspended) return { error: "Boutique indisponible." };
+
+  // 5 orders / hour / IP / store — blocks fake-order floods against merchants.
+  const ip = await clientIp();
+  const hourAgo = new Date(Date.now() - 3600_000);
+  const recentOrders = await db.query.orders.findMany({
+    where: and(eq(orders.storeId, store.id), eq(orders.ip, ip), gte(orders.createdAt, hourAgo)),
+    columns: { id: true },
+    limit: 5,
+  });
+  if (recentOrders.length >= 5) return { error: "Trop de commandes. Réessayez dans une heure." };
   const product = await db.query.products.findFirst({
     where: and(eq(products.id, d.productId), eq(products.storeId, store.id), eq(products.status, "active")),
   });
@@ -111,6 +122,7 @@ export async function placeOrderAction(_: FormState, formData: FormData): Promis
           subtotal,
           deliveryFee,
           total,
+          ip,
           customerNote: d.note,
         })
         .returning({ id: orders.id });

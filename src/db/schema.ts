@@ -236,6 +236,7 @@ export const orders = pgTable(
     deliveryFee: integer("delivery_fee").notNull(),
     total: integer("total").notNull(),
     status: text("status").$type<OrderStatus>().notNull().default("pending"),
+    ip: text("ip"), // abuse rate-limiting (orders per IP per store)
     customerNote: text("customer_note").notNull().default(""),
     internalNote: text("internal_note").notNull().default(""),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -313,6 +314,7 @@ export const contactRequests = pgTable(
     plan: text("plan").$type<PlanId>().notNull().default("growth"),
     message: text("message").notNull().default(""),
     source: text("source").notNull().default("contact"), // contact (footer/page form) | plan (plan button)
+    ip: text("ip"), // abuse rate-limiting
     status: text("status").notNull().default("open"), // open | handled | closed
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },

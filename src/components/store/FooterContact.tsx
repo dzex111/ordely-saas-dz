@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { Loader2, Send } from "lucide-react";
 import { createContactRequestAction } from "@/lib/actions/contact";
+import { Turnstile } from "@/components/ui/Turnstile";
 
 /** Lightweight footer contact block — same identity, posts to the admin inbox. */
 export function FooterContact() {
@@ -24,6 +25,8 @@ export function FooterContact() {
         </div>
         <input type="hidden" name="plan" value="growth" />
         <input type="hidden" name="source" value="contact" />
+        <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden className="hidden" />
+        <Turnstile />
         <button type="submit" disabled={pending} className="db-btn !px-5 !py-2.5" aria-label="Envoyer">
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           <span className="md:hidden">Envoyer</span>

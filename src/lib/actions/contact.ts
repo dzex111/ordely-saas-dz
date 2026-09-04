@@ -1,15 +1,25 @@
 "use server";
 
 import { z } from "zod";
+import { and, eq, gte } from "drizzle-orm";
 import { db } from "@/db";
 import { contactRequests, PLAN_IDS, type PlanId } from "@/db/schema";
 import { getPlan } from "@/lib/plans";
 import { getCurrentStore } from "@/lib/auth";
+import { clientIp } from "@/lib/rate-limit";
+import { verifyTurnstile } from "@/lib/turnstile";
 import type { FormState } from "./auth";
 
 /** Public contact form — plan upgrade requests. Stored for manual review by the admin.
  *  Nothing here ever changes a store plan; only the admin does that directly. */
 export async function createContactRequestAction(_: FormState, formData: FormData): Promise<FormState> {
+  // Honeypot: bots fill it, humans never see it. Fake success, store nothing.
+  if (typeof formData.get("website") === "string" && (formData.get("website") as string).trim() !== "") {
+    return { success: "Demande envoyée. L’admin vous contactera pour activer votre plan." };
+  }
+  if (!(await verifyTurnstile(formData.get("cf-turnstile-response") as string | null))) {
+    return { error: "Vérification anti-robot échouée. Réessayez." };
+  }
   const parsed = z
     .object({
       name: z.string().trim().min(2, "Votre nom est requis.").max(80),
@@ -28,6 +38,17 @@ export async function createContactRequestAction(_: FormState, formData: FormDat
 
   const store = await getCurrentStore().catch(() => null);
   const message = parsed.data.message ?? "";
+
+  // 3 requests / hour / IP — protects the free Brevo + Supabase quotas.
+  const ip = await clientIp();
+  const hourAgo = new Date(Date.now() - 3600_000);
+  const recent = await db.query.contactRequests.findMany({
+    where: and(eq(contactRequests.ip, ip), gte(contactRequests.createdAt, hourAgo)),
+    columns: { id: true },
+    limit: 3,
+  });
+  if (recent.length >= 3) return { error: "Trop de demandes. Réessayez dans une heure." };
+
   await db.insert(contactRequests).values({
     storeId: store?.id ?? null,
     name: parsed.data.name,
@@ -35,6 +56,7 @@ export async function createContactRequestAction(_: FormState, formData: FormDat
     plan,
     message,
     source,
+    ip,
   });
 
   // Instant admin notification (best-effort — never blocks the form).
