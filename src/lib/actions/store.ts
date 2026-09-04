@@ -2,11 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { and, eq, ne } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import { products, stores, subscriptions, type BrandOverrides, type StoreContent, type StoreSettings } from "@/db/schema";
-import { getOwnedStore, requireStore, requireUser } from "@/lib/auth";
+import { ACTIVE_STORE_COOKIE, getOwnedStore, requireStore, requireUser } from "@/lib/auth";
 import { getTemplate, TEMPLATE_IDS } from "@/lib/templates";
 import { getPlan, upgradeCta } from "@/lib/plans";
 import { generateStorePublicId } from "@/lib/store-id";
@@ -106,6 +107,9 @@ export async function createStoreAction(_: FormState, formData: FormData): Promi
   }
 
   await db.insert(subscriptions).values({ storeId: store.id, plan: inherited, status: "active", provider: "manual" });
+  // Open the NEW store right away — set it active so the dashboard doesn't stay on the old one.
+  const jar = await cookies();
+  jar.set(ACTIVE_STORE_COOKIE, store.id, { httpOnly: true, sameSite: "lax", path: "/", maxAge: 365 * 86400 });
   redirect("/dashboard?welcome=1");
 }
 
