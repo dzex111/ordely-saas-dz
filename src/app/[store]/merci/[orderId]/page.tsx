@@ -5,7 +5,8 @@ import { CheckCircle2, PhoneCall, Truck, Banknote } from "lucide-react";
 import { db } from "@/db";
 import { orders } from "@/db/schema";
 import { getStoreCtx } from "@/lib/store-ctx";
-import { wilayaByCode, ZONE_ETA, formatPhone } from "@/lib/algeria";
+import { st, storeLangOf } from "@/lib/store-i18n";
+import { wilayaByCode, formatPhone } from "@/lib/algeria";
 import { formatDZD } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +17,10 @@ export default async function ThankYou({ params }: { params: Promise<{ store: st
   const ctx = await getStoreCtx(sub);
   if (!ctx) notFound();
   const { store, base, theme } = ctx;
+  const lang = storeLangOf(store.settings.language);
+  const t = st(lang);
+  const etaOf = (zone: "north" | "highlands" | "south") =>
+    zone === "north" ? t.etaNorth : zone === "highlands" ? t.etaHighlands : t.etaSouth;
   if (!/^[0-9a-f-]{36}$/.test(orderId)) notFound();
   const order = await db.query.orders.findFirst({ where: and(eq(orders.id, orderId), eq(orders.storeId, store.id)) });
   if (!order) notFound();
@@ -27,10 +32,10 @@ export default async function ThankYou({ params }: { params: Promise<{ store: st
         <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full" style={{ background: "color-mix(in srgb, var(--accent) 20%, transparent)", color: "var(--accent)" }}>
           <CheckCircle2 className="h-8 w-8" />
         </span>
-        <p className="mt-6 text-xs uppercase tracking-[0.3em] sf-muted">Commande n° {String(order.number).padStart(4, "0")}</p>
-        <h1 className="mt-3 text-4xl md:text-5xl">Merci, {order.customerName.split(" ")[0]} !</h1>
+        <p className="mt-6 text-xs uppercase tracking-[0.3em] sf-muted">{t.tyOrderNo} {String(order.number).padStart(4, "0")}</p>
+        <h1 className="mt-3 text-4xl md:text-5xl">{t.tyThanks(order.customerName.split(" ")[0])}</h1>
         <p className="mx-auto mt-4 max-w-md text-base leading-relaxed sf-muted">
-          Votre commande est bien reçue. Nous vous appelons au <strong style={{ color: "var(--fg)" }}>{formatPhone(order.customerPhone)}</strong> pour la confirmer avant expédition.
+          {t.tyReceived1} <strong style={{ color: "var(--fg)" }}>{formatPhone(order.customerPhone)}</strong> {t.tyReceived2}
         </p>
       </div>
 
@@ -44,21 +49,21 @@ export default async function ThankYou({ params }: { params: Promise<{ store: st
             <div className="flex-1">
               <p className="font-medium">{it.name}</p>
               <p className="text-xs sf-muted">
-                {it.variant ? `${it.variant} · ` : ""}Qté {it.qty}
+                {it.variant ? `${it.variant} · ` : ""}{t.tyQty} {it.qty}
               </p>
             </div>
             <p className="font-semibold tabular-nums">{formatDZD(it.price * it.qty)}</p>
           </div>
         ))}
         <div className="space-y-1.5 p-5 text-sm" style={{ borderColor: "var(--border)" }}>
-          <div className="flex justify-between sf-muted"><span>Sous-total</span><span>{formatDZD(order.subtotal)}</span></div>
-          <div className="flex justify-between sf-muted"><span>Livraison ({order.deliveryType === "home" ? "domicile" : "point relais"})</span><span>{order.deliveryFee === 0 ? "Offerte" : formatDZD(order.deliveryFee)}</span></div>
-          <div className="flex justify-between pt-2 text-lg font-semibold"><span>À payer au livreur</span><span>{formatDZD(order.total)}</span></div>
+          <div className="flex justify-between sf-muted"><span>{t.coSubtotal}</span><span>{formatDZD(order.subtotal)}</span></div>
+          <div className="flex justify-between sf-muted"><span>{t.coDelivery} ({order.deliveryType === "home" ? t.tyHome : t.tyDesk})</span><span>{order.deliveryFee === 0 ? t.coFree : formatDZD(order.deliveryFee)}</span></div>
+          <div className="flex justify-between pt-2 text-lg font-semibold"><span>{t.tyToPay}</span><span>{formatDZD(order.total)}</span></div>
         </div>
         <div className="p-5 text-sm" style={{ borderColor: "var(--border)" }}>
-          <p className="text-[11px] font-semibold uppercase tracking-widest sf-muted">Adresse de livraison</p>
+          <p className="text-[11px] font-semibold uppercase tracking-widest sf-muted">{t.tyAddress}</p>
           <p className="mt-1.5">
-            {order.customerName} · {w?.name ?? order.wilayaCode}, {order.commune}
+            {order.customerName} · {lang === "ar" ? (w?.ar ?? order.wilayaCode) : (w?.name ?? order.wilayaCode)}, {order.commune}
             {order.address ? ` — ${order.address}` : ""}
           </p>
         </div>
@@ -66,9 +71,9 @@ export default async function ThankYou({ params }: { params: Promise<{ store: st
 
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
         {[
-          { I: PhoneCall, t: "Confirmation", d: "Appel sous 24h ouvrées" },
-          { I: Truck, t: "Livraison", d: w ? `${ZONE_ETA[w.zone]} vers ${w.name}` : "Selon wilaya" },
-          { I: Banknote, t: "Paiement", d: `${formatDZD(order.total)} en espèces à la réception` },
+          { I: PhoneCall, t: t.tyConfirmT, d: t.tyConfirmD },
+          { I: Truck, t: t.tyDelivT, d: w ? t.tyDelivD(etaOf(w.zone), lang === "ar" ? w.ar : w.name) : t.coPerWilaya },
+          { I: Banknote, t: t.tyPayT, d: t.tyPayD(formatDZD(order.total)) },
         ].map(({ I, t, d }) => (
           <div key={t} className="flex items-start gap-3 text-sm">
             <I className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "var(--accent)" }} />
@@ -81,10 +86,10 @@ export default async function ThankYou({ params }: { params: Promise<{ store: st
       </div>
 
       <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-        <Link href={`${base}/#produits`} className="sf-btn">Continuer mes achats</Link>
+        <Link href={`${base}/#produits`} className="sf-btn">{t.tyContinue}</Link>
         {theme.content.whatsapp && (
-          <a href={`https://wa.me/213${theme.content.whatsapp.replace(/\D/g, "").replace(/^0/, "")}?text=${encodeURIComponent(`Bonjour, je viens de passer la commande n°${order.number} sur ${store.name}.`)}`} target="_blank" rel="noreferrer" className="sf-btn-ghost">
-            Nous écrire sur WhatsApp
+          <a href={`https://wa.me/213${theme.content.whatsapp.replace(/\D/g, "").replace(/^0/, "")}?text=${encodeURIComponent(t.tyWaMsg(order.number, store.name))}`} target="_blank" rel="noreferrer" className="sf-btn-ghost">
+            {t.tyWhatsapp}
           </a>
         )}
       </div>

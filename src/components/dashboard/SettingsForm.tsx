@@ -34,7 +34,7 @@ export function SettingsForm({ store }: { store: Store }) {
         </div>
         <label className="flex items-center gap-3 rounded-lg border border-zinc-200 p-3">
           <input type="checkbox" name="published" defaultChecked={store.published} className="h-4 w-4 accent-zinc-900" />
-          <span className="text-sm"><span className="font-medium">Boutique publiée</span><span className="block text-xs text-zinc-500">Décochez pour passer en mode privé : les visiteurs voient un bandeau et les commandes sont bloquées.</span></span>
+          <span className="text-sm"><span className="font-medium">Boutique publiée</span><span className="block text-xs text-zinc-500">Décochez pour passer en mode privé : vous seul pouvez la voir, les visiteurs voient une page introuvable et les commandes sont bloquées.</span></span>
         </label>
       </section>
 
@@ -56,6 +56,10 @@ export function SettingsForm({ store }: { store: Store }) {
           <div>
             <label className="db-label" htmlFor="returnDays">Retour (jours)</label>
             <input id="returnDays" name="returnDays" type="number" min={0} max={60} required defaultValue={s.returnDays} className="db-input" />
+          </div>
+          <div>
+            <label className="db-label" htmlFor="maxQtyPerOrder">Qté max / commande</label>
+            <input id="maxQtyPerOrder" name="maxQtyPerOrder" type="number" min={1} max={20} required defaultValue={s.maxQtyPerOrder ?? 5} className="db-input" />
           </div>
         </div>
         <div>

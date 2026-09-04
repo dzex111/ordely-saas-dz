@@ -44,6 +44,10 @@ export async function placeOrderAction(_: FormState, formData: FormData): Promis
   const store = await db.query.stores.findFirst({ where: eq(stores.id, d.storeId) });
   if (!store || !store.published || store.suspended) return { error: "Boutique indisponible." };
 
+  // Merchant-configured cap: max units of one product per order (anti bulk-fake orders).
+  const qtyCap = Math.min(20, store.settings.maxQtyPerOrder ?? 5);
+  if (d.qty > qtyCap) return { error: `Quantité maximale : ${qtyCap} par commande.` };
+
   // 5 orders / hour / IP / store — blocks fake-order floods against merchants.
   const ip = await clientIp();
   const hourAgo = new Date(Date.now() - 3600_000);

@@ -3,6 +3,7 @@ import { ArrowRight, ArrowUpRight, Phone, ShieldCheck, Truck, RotateCcw, Sparkle
 import type { Product, Store } from "@/db/schema";
 import type { ResolvedTheme } from "@/lib/templates";
 import { formatDZD, cn } from "@/lib/utils";
+import { st, storeLangOf, type StoreLang } from "@/lib/store-i18n";
 
 type Ctx = { store: Store; theme: ResolvedTheme; base: string };
 
@@ -29,6 +30,7 @@ export function Announcement({ theme }: Ctx) {
 
 export function Header({ store, theme, base }: Ctx) {
   const v = theme.template.layout.header;
+  const t = st(storeLangOf(store.settings.language));
   const Logo = (
     <Link href={base || "/"} className="flex items-center gap-2.5">
       {store.logoUrl ? (
@@ -42,24 +44,24 @@ export function Header({ store, theme, base }: Ctx) {
   const nav = (
     <nav className="hidden items-center gap-7 text-sm sf-muted md:flex">
       <Link href={`${base}/#produits`} className="transition hover:opacity-70" style={{ color: "var(--fg)" }}>
-        Produits
+        {t.navProducts}
       </Link>
       <Link href={`${base}/#apropos`} className="transition hover:opacity-70" style={{ color: "var(--fg)" }}>
-        À propos
+        {t.navAbout}
       </Link>
       <Link href={`${base}/#livraison`} className="transition hover:opacity-70" style={{ color: "var(--fg)" }}>
-        Livraison
+        {t.navDelivery}
       </Link>
     </nav>
   );
   const contact = theme.content.whatsapp || theme.content.phone;
   const cta = contact ? (
     <a href={theme.content.whatsapp ? `https://wa.me/213${theme.content.whatsapp.replace(/\D/g, "").replace(/^0/, "")}` : `tel:${theme.content.phone}`} target="_blank" rel="noreferrer" className="sf-btn-ghost !py-2 !px-3.5 text-xs">
-      <Phone className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Contact</span>
+      <Phone className="h-3.5 w-3.5" /> <span className="hidden sm:inline">{t.navContact}</span>
     </a>
   ) : (
     <Link href={`${base}/#produits`} className="sf-btn !py-2 !px-4 text-xs">
-      Commander
+      {t.navOrder}
     </Link>
   );
 
@@ -115,6 +117,7 @@ export function Header({ store, theme, base }: Ctx) {
 
 export function Hero({ store, theme, base, products }: Ctx & { products: Product[] }) {
   const c = theme.content;
+  const t = st(storeLangOf(store.settings.language));
   const v = theme.template.layout.hero;
   const image = c.heroImage || products.find((p) => p.images[0])?.images[0] || null;
   const second = products.find((p) => p.images[0] && p.images[0] !== image)?.images[0] ?? null;
@@ -144,7 +147,7 @@ export function Hero({ store, theme, base, products }: Ctx & { products: Product
           </p>
           <div className="mt-9 flex items-center gap-4 animate-fade-up" style={{ animationDelay: "240ms" }}>
             {cta}
-            <span className="text-xs sf-muted">Paiement à la livraison</span>
+            <span className="text-xs sf-muted">{t.codNote}</span>
           </div>
         </div>
         <div className="relative md:col-span-6 lg:col-span-7">
@@ -179,7 +182,7 @@ export function Hero({ store, theme, base, products }: Ctx & { products: Product
           <div className="mt-9 flex items-center justify-center gap-3 animate-fade-up" style={{ animationDelay: "240ms" }}>
             {cta}
             <Link href={`${base}/#apropos`} className="sf-btn-ghost">
-              En savoir plus
+              {t.learnMore}
             </Link>
           </div>
         </div>
@@ -335,7 +338,7 @@ export function Hero({ store, theme, base, products }: Ctx & { products: Product
         <div className="mt-8 flex flex-wrap items-center gap-4 animate-fade-up" style={{ animationDelay: "200ms" }}>
           {cta}
           <span className="flex items-center gap-2 text-sm font-medium">
-            <Truck className="h-4 w-4" style={{ color: "var(--primary)" }} /> Livraison 58 wilayas
+            <Truck className="h-4 w-4" style={{ color: "var(--primary)" }} /> {t.delivery58}
           </span>
         </div>
       </div>
@@ -344,13 +347,13 @@ export function Hero({ store, theme, base, products }: Ctx & { products: Product
           <Img src={image} />
         </div>
         <div className="absolute -right-3 -top-4 flex h-24 w-24 rotate-12 items-center justify-center rounded-full text-center text-xs font-black uppercase leading-tight shadow-lg md:h-28 md:w-28" style={{ background: "var(--accent)", color: "var(--fg)" }}>
-          Paiement
-          <br />à la
+          {t.codBadge[0]}
+          <br />{t.codBadge[1]}
           <br />
-          livraison
+          {t.codBadge[2]}
         </div>
         <div className="absolute -bottom-4 left-6 rounded-full px-4 py-2 text-sm font-bold shadow-lg" style={{ background: "var(--primary)", color: "var(--primary-fg)" }}>
-          100% naturel
+          {t.natural}
         </div>
       </div>
     </section>
@@ -384,8 +387,9 @@ export function TrustStrip({ theme }: Ctx) {
 
 /* --------------------------------- Product card ---------------------------- */
 
-export function ProductCard({ product, theme, base, index }: { product: Product; theme: ResolvedTheme; base: string; index: number }) {
+export function ProductCard({ product, theme, base, index, lang = "fr" }: { product: Product; theme: ResolvedTheme; base: string; index: number; lang?: StoreLang }) {
   const v = theme.template.layout.card;
+  const t = st(lang);
   const href = `${base}/p/${product.slug}`;
   const img = product.images[0];
   const discount = product.compareAtPrice && product.compareAtPrice > product.price ? Math.round((1 - product.price / product.compareAtPrice) * 100) : null;
@@ -396,14 +400,14 @@ export function ProductCard({ product, theme, base, index }: { product: Product;
         // eslint-disable-next-line @next/next/no-img-element
         <img src={img} alt={product.name} loading={index < 3 ? "eager" : "lazy"} className="h-full w-full object-cover" />
       ) : (
-        <div className="flex h-full w-full items-center justify-center text-xs sf-muted">Sans image</div>
+        <div className="flex h-full w-full items-center justify-center text-xs sf-muted">{t.noImage}</div>
       )}
       {discount && v !== "market" && (
         <span className="absolute left-3 top-3 rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: "var(--accent)", color: v === "tech" || v === "luxe" ? "#0b0b0b" : "var(--fg)" }}>
           −{discount}%
         </span>
       )}
-      {soldOut && <span className="absolute inset-x-0 bottom-0 bg-black/70 py-1.5 text-center text-xs font-semibold text-white">Épuisé</span>}
+      {soldOut && <span className="absolute inset-x-0 bottom-0 bg-black/70 py-1.5 text-center text-xs font-semibold text-white">{t.soldOut}</span>}
     </div>
   );
   const Price = ({ className }: { className?: string }) => (
@@ -439,9 +443,9 @@ export function ProductCard({ product, theme, base, index }: { product: Product;
           <p className="mt-1 line-clamp-1 text-xs sf-muted">{product.shortDescription}</p>
           <div className="mt-3 flex items-center justify-between">
             <Price />
-            <span className="rounded-full px-3 py-1.5 text-xs font-semibold" style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)", color: "var(--primary)" }}>
-              Commander
-            </span>
+              <span className="rounded-full px-3 py-1.5 text-xs font-semibold" style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)", color: "var(--primary)" }}>
+                {t.orderBtn}
+              </span>
           </div>
         </div>
       </Link>
@@ -455,7 +459,7 @@ export function ProductCard({ product, theme, base, index }: { product: Product;
           <h3 className="text-lg font-extrabold uppercase leading-none tracking-tight">{product.name}</h3>
           <div className="mt-3 flex items-center justify-between">
             <Price className="text-lg" />
-            <span className="text-xs font-black uppercase tracking-widest">Shop →</span>
+              <span className="text-xs font-black uppercase tracking-widest">{t.shopNow}</span>
           </div>
         </div>
       </Link>
@@ -484,7 +488,7 @@ export function ProductCard({ product, theme, base, index }: { product: Product;
         <div className="p-4">
           <h3 className="text-lg font-semibold leading-snug">{product.name}</h3>
           <p className="mt-1 line-clamp-2 text-xs leading-relaxed sf-muted">{product.shortDescription}</p>
-          {discount && <p className="mt-2 text-xs font-bold" style={{ color: "var(--primary)" }}>Économisez {discount}%</p>}
+          {discount && <p className="mt-2 text-xs font-bold" style={{ color: "var(--primary)" }}>{t.saveX(discount)}</p>}
         </div>
       </Link>
     );
@@ -511,7 +515,7 @@ export function ProductCard({ product, theme, base, index }: { product: Product;
         <h3 className="text-xl leading-tight">{product.name}</h3>
         <Price className="shrink-0 text-sm" />
       </div>
-      <p className="mt-1 text-xs uppercase tracking-widest sf-muted">{product.options[0]?.values.slice(0, 4).join(" · ") || "Pièce unique"}</p>
+        <p className="mt-1 text-xs uppercase tracking-widest sf-muted">{product.options[0]?.values.slice(0, 4).join(" · ") || t.singlePiece}</p>
     </Link>
   );
 }
@@ -554,6 +558,7 @@ export function About({ theme, products }: Ctx & { products: Product[] }) {
 export function Footer({ store, theme, base }: Ctx) {
   const c = theme.content;
   const s = store.settings;
+  const t = st(storeLangOf(s.language));
   return (
     <footer className="border-t" style={{ borderColor: "var(--border)" }}>
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-4 md:px-8">
@@ -579,21 +584,21 @@ export function Footer({ store, theme, base }: Ctx) {
           </div>
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest">Livraison</p>
+          <p className="text-xs font-semibold uppercase tracking-widest">{t.fDelivery}</p>
           <ul className="mt-4 space-y-2 text-sm sf-muted">
-            <li>Domicile : {formatDZD(s.homeDeliveryFee)}</li>
-            <li>Point relais : {formatDZD(s.deskDeliveryFee)}</li>
-            {s.freeShippingThreshold !== null && <li>Offerte dès {formatDZD(s.freeShippingThreshold)}</li>}
-            <li>Nord 24–48h · Sud 3–5 jours</li>
-            <li>Retour sous {s.returnDays} jours</li>
+            <li>{t.fHome} : {formatDZD(s.homeDeliveryFee)}</li>
+            <li>{t.fRelay} : {formatDZD(s.deskDeliveryFee)}</li>
+            {s.freeShippingThreshold !== null && <li>{t.fFreeFrom(formatDZD(s.freeShippingThreshold))}</li>}
+            <li>{t.fEta}</li>
+            <li>{t.fReturns(s.returnDays)}</li>
           </ul>
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest">Contact</p>
+          <p className="text-xs font-semibold uppercase tracking-widest">{t.fContact}</p>
           <ul className="mt-4 space-y-2 text-sm sf-muted">
             {c.phone && <li><a href={`tel:${c.phone}`}>{c.phone}</a></li>}
             {c.email && <li><a href={`mailto:${c.email}`}>{c.email}</a></li>}
-            <li><Link href={`${base}/#produits`}>Tous les produits</Link></li>
+            <li><Link href={`${base}/#produits`}>{t.fAllProducts}</Link></li>
           </ul>
         </div>
       </div>
@@ -601,7 +606,7 @@ export function Footer({ store, theme, base }: Ctx) {
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-5 py-5 text-[11px] sf-muted md:flex-row md:px-8">
           <span>© {new Date().getFullYear()} {store.name}. {c.footerNote}</span>
           <span>
-            Propulsé par <Link href="/" className="font-semibold" style={{ color: "var(--fg)" }}>ORDELY</Link>
+            {t.fPowered} <Link href="/" className="font-semibold" style={{ color: "var(--fg)" }}>ORDELY</Link>
           </span>
         </div>
       </div>

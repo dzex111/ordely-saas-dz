@@ -7,6 +7,7 @@ import { getStoreCtx } from "@/lib/store-ctx";
 import { Gallery } from "@/components/store/Gallery";
 import { CheckoutForm } from "@/components/store/CheckoutForm";
 import { ProductCard } from "@/components/store/sections";
+import { st, storeLangOf } from "@/lib/store-i18n";
 import { formatDZD } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +32,8 @@ export default async function ProductPage({ params }: Props) {
   const ctx = await getStoreCtx(sub);
   if (!ctx) notFound();
   const { store, theme, base } = ctx;
+  const lang = storeLangOf(store.settings.language);
+  const t = st(lang);
   const product = await getActiveProductBySlug(store.id, slug);
   if (!product) notFound();
   const others = (await getActiveProducts(store.id)).filter((p) => p.id !== product.id).slice(0, 3);
@@ -53,7 +56,7 @@ export default async function ProductPage({ params }: Props) {
         <nav className="mb-6 flex items-center gap-1.5 text-xs sf-muted">
           <Link href={base || "/"} className="hover:underline">{store.name}</Link>
           <ChevronRight className="h-3 w-3" />
-          <Link href={`${base}/#produits`} className="hover:underline">Produits</Link>
+          <Link href={`${base}/#produits`} className="hover:underline">{t.crumbProducts}</Link>
           <ChevronRight className="h-3 w-3" />
           <span style={{ color: "var(--fg)" }}>{product.name}</span>
         </nav>
@@ -61,7 +64,7 @@ export default async function ProductPage({ params }: Props) {
         <div className="grid gap-10 lg:grid-cols-12 lg:gap-14">
           <div className="lg:col-span-7">
             <div className="lg:sticky lg:top-6">
-              <Gallery images={product.images} name={product.name} />
+              <Gallery images={product.images} name={product.name} lang={lang} />
               {product.features.length > 0 && (
                 <div className="mt-8 hidden grid-cols-2 gap-3 lg:grid">
                   {product.features.map((f) => (
@@ -78,14 +81,14 @@ export default async function ProductPage({ params }: Props) {
           <div className="lg:col-span-5">
             {discount && (
               <span className="mb-4 inline-block rounded-full px-3 py-1 text-xs font-bold" style={{ background: "var(--accent)", color: theme.template.id === "nova" || theme.template.id === "luxe" ? "#0b0b0b" : "var(--fg)" }}>
-                Offre −{discount}%
+                {t.offer} −{discount}%
               </span>
             )}
             <h1 className="text-4xl leading-tight md:text-5xl">{product.name}</h1>
             <div className="mt-4 flex items-baseline gap-3">
               <span className="text-2xl font-semibold tabular-nums">{formatDZD(product.price)}</span>
               {product.compareAtPrice && product.compareAtPrice > product.price && <span className="text-base line-through sf-muted">{formatDZD(product.compareAtPrice)}</span>}
-              {product.stock !== null && product.stock > 0 && product.stock <= 5 && <span className="text-xs font-semibold" style={{ color: "var(--accent)" }}>Plus que {product.stock}</span>}
+              {product.stock !== null && product.stock > 0 && product.stock <= 5 && <span className="text-xs font-semibold" style={{ color: "var(--accent)" }}>{t.onlyLeft(product.stock)}</span>}
             </div>
             {product.shortDescription && <p className="mt-5 text-base leading-relaxed sf-muted">{product.shortDescription}</p>}
 
@@ -95,10 +98,10 @@ export default async function ProductPage({ params }: Props) {
 
             <ul className="mt-6 grid grid-cols-2 gap-3 text-xs">
               {[
-                { I: ShieldCheck, t: "Payez à la réception" },
-                { I: Truck, t: "58 wilayas livrées" },
-                { I: PhoneCall, t: "Confirmation par appel" },
-                { I: RotateCcw, t: `Retour ${store.settings.returnDays} jours` },
+                { I: ShieldCheck, t: t.perk1 },
+                { I: Truck, t: t.perk2 },
+                { I: PhoneCall, t: t.perk3 },
+                { I: RotateCcw, t: t.perk4(store.settings.returnDays) },
               ].map(({ I, t }) => (
                 <li key={t} className="flex items-center gap-2 sf-muted">
                   <I className="h-4 w-4" style={{ color: "var(--accent)" }} strokeWidth={1.75} /> {t}
@@ -119,7 +122,7 @@ export default async function ProductPage({ params }: Props) {
 
             {paragraphs.length > 0 && (
               <div className="mt-10 border-t pt-8" style={{ borderColor: "var(--border)" }}>
-                <h2 className="text-2xl">L’histoire du produit</h2>
+                <h2 className="text-2xl">{t.story}</h2>
                 <div className="mt-4 space-y-4 text-[15px] leading-relaxed sf-muted">
                   {paragraphs.map((p, i) => (
                     <p key={i}>{p}</p>
@@ -133,12 +136,12 @@ export default async function ProductPage({ params }: Props) {
         {others.length > 0 && (
           <section className="mt-24">
             <div className="mb-8 flex items-end justify-between">
-              <h2 className="text-2xl md:text-3xl">Vous aimerez aussi</h2>
-              <Link href={`${base}/#produits`} className="text-sm underline-offset-4 hover:underline">Tout voir</Link>
+              <h2 className="text-2xl md:text-3xl">{t.alsoLike}</h2>
+              <Link href={`${base}/#produits`} className="text-sm underline-offset-4 hover:underline">{t.seeAll}</Link>
             </div>
             <div className="grid grid-cols-2 gap-5 lg:grid-cols-3">
               {others.map((p, i) => (
-                <ProductCard key={p.id} product={p} theme={theme} base={base} index={i + 3} />
+                <ProductCard key={p.id} product={p} theme={theme} base={base} index={i + 3} lang={lang} />
               ))}
             </div>
           </section>

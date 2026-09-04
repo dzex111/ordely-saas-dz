@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { getStoreBySubdomain } from "@/lib/store-data";
 import { getStoreCtx } from "@/lib/store-ctx";
 import { getCurrentUser } from "@/lib/auth";
+import { st, storeLangOf } from "@/lib/store-i18n";
 import { Announcement, Footer, Header } from "@/components/store/sections";
 
 type Props = { children: ReactNode; params: Promise<{ store: string }> };
@@ -25,6 +26,8 @@ export default async function StoreLayout({ children, params }: Props) {
   const ctx = await getStoreCtx(sub);
   if (!ctx) notFound();
   const { store, theme, base } = ctx;
+  const rtl = storeLangOf(store.settings.language) === "ar";
+  const t = st(rtl ? "ar" : "fr");
   if (store.suspended) notFound();
   // Unpublished = private: only the owner can preview it, visitors get 404.
   if (!store.published) {
@@ -33,9 +36,9 @@ export default async function StoreLayout({ children, params }: Props) {
   }
   const dark = isDark(theme.cssVars["--bg"]);
   return (
-    <div className={dark ? "sf dark" : "sf"} style={theme.cssVars as React.CSSProperties} lang={store.settings.language}>
+    <div className={dark ? "sf dark" : "sf"} style={theme.cssVars as React.CSSProperties} lang={rtl ? "ar" : store.settings.language} dir={rtl ? "rtl" : "ltr"}>
       {!store.published && (
-        <div className="bg-amber-400 px-4 py-2 text-center text-xs font-semibold text-black">Boutique en mode privé — visible uniquement par vous. Publiez-la depuis Paramètres.</div>
+        <div className="bg-amber-400 px-4 py-2 text-center text-xs font-semibold text-black">{t.privateBanner}</div>
       )}
       <Announcement store={store} theme={theme} base={base} />
       <Header store={store} theme={theme} base={base} />

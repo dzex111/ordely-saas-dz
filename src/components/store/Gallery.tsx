@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { st, type StoreLang } from "@/lib/store-i18n";
 
-export function Gallery({ images, name }: { images: string[]; name: string }) {
+export function Gallery({ images, name, lang = "fr" }: { images: string[]; name: string; lang?: StoreLang }) {
   const [active, setActive] = useState(0);
+  const t = st(lang);
   if (images.length === 0) {
     return (
       <div className="sf-img flex aspect-[4/5] items-center justify-center text-sm sf-muted" style={{ background: "var(--card)" }}>
-        Photos à venir
+        {t.gallerySoon}
       </div>
     );
   }
@@ -21,16 +23,16 @@ export function Gallery({ images, name }: { images: string[]; name: string }) {
         {images.length > 1 && (
           <div className="absolute inset-x-0 bottom-3 flex justify-center gap-1.5 md:hidden">
             {images.map((_, i) => (
-              <button key={i} type="button" aria-label={`Image ${i + 1}`} onClick={() => setActive(i)} className={cn("h-1.5 rounded-full transition-all", i === active ? "w-6 bg-white" : "w-1.5 bg-white/60")} />
+              <button key={i} type="button" aria-label={t.galleryImage(i + 1)} onClick={() => setActive(i)} className={cn("h-1.5 rounded-full transition-all", i === active ? "w-6 bg-white" : "w-1.5 bg-white/60")} />
             ))}
           </div>
         )}
         {images.length > 1 && (
           <>
-            <button type="button" aria-label="Précédente" onClick={() => setActive((a) => (a - 1 + images.length) % images.length)} className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60">
+            <button type="button" aria-label={t.galleryPrev} onClick={() => setActive((a) => (a - 1 + images.length) % images.length)} className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60">
               ‹
             </button>
-            <button type="button" aria-label="Suivante" onClick={() => setActive((a) => (a + 1) % images.length)} className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60">
+            <button type="button" aria-label={t.galleryNext} onClick={() => setActive((a) => (a + 1) % images.length)} className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60">
               ›
             </button>
           </>

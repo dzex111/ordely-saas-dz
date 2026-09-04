@@ -53,6 +53,7 @@ export type StoreSettings = {
   freeShippingThreshold: number | null;
   rateOverrides: Record<string, { home: number; desk: number }>;
   returnDays: number;
+  maxQtyPerOrder: number; // anti-spam: max units of one product per order
   checkoutNote?: string;
 };
 
@@ -145,6 +146,7 @@ export const stores = pgTable(
         freeShippingThreshold: null,
         rateOverrides: {},
         returnDays: 14,
+        maxQtyPerOrder: 5,
       }),
     plan: text("plan").$type<PlanId>().notNull().default("starter"),
     planStatus: text("plan_status").notNull().default("active"),

@@ -190,6 +190,8 @@ export async function updateSettingsAction(_: FormState, formData: FormData): Pr
   const freeRaw = String(formData.get("freeShippingThreshold") ?? "").trim();
   const free = freeRaw === "" ? null : num("freeShippingThreshold");
   const returnDays = num("returnDays");
+  const maxQtyRaw = num("maxQtyPerOrder");
+  const maxQtyPerOrder = Number.isNaN(maxQtyRaw) ? 5 : Math.min(20, Math.max(1, maxQtyRaw));
   const language = formData.get("language") === "ar" ? "ar" : "fr";
   const published = formData.get("published") === "on";
   if ([home, desk, returnDays].some(Number.isNaN) || (free !== null && Number.isNaN(free))) {
@@ -215,6 +217,7 @@ export async function updateSettingsAction(_: FormState, formData: FormData): Pr
     freeShippingThreshold: free,
     rateOverrides,
     returnDays,
+    maxQtyPerOrder,
     checkoutNote: String(formData.get("checkoutNote") ?? "").trim().slice(0, 200),
   };
 
