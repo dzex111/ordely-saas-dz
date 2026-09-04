@@ -18,7 +18,7 @@ export default async function OnboardingPage() {
       <main className="mx-auto max-w-6xl px-6 py-12">
         <p className="text-xs font-medium uppercase tracking-widest text-brand">{isAdditional ? "Nouvelle boutique" : "Étape unique"}</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight md:text-4xl">{isAdditional ? "Ajouter une boutique à votre compte." : "Votre boutique, prête en 2 minutes."}</h1>
-        <p className="mt-2 max-w-xl text-sm text-zinc-500">{isAdditional ? "Même compte, même équipe, nouvelle vitrine. Les limites de votre plan s’appliquent au total de vos boutiques." : "Nom, adresse, univers visuel. Tout le reste se règle depuis le tableau de bord — et se reflète instantanément sur votre boutique."}</p>
+        <p className="mt-2 max-w-xl text-sm text-zinc-500">{isAdditional ? "Même compte, même équipe, nouvelle vitrine — elle hérite de votre meilleur plan, dans la limite de vos boutiques." : "Nom, adresse, univers visuel. Tout le reste se règle depuis le tableau de bord — et se reflète instantanément sur votre boutique."}</p>
         <p className="mt-3 max-w-xl text-sm text-zinc-600">
           Pas prêt ?{" "}
           <Link href="/start" className="font-medium text-zinc-900 underline underline-offset-4 hover:no-underline">

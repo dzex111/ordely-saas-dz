@@ -59,6 +59,9 @@ export async function createStoreAction(_: FormState, formData: FormData): Promi
     const cta = upgradeCta(best);
     return { error: `Limite de ${allowance} boutique${allowance > 1 ? "s" : ""} atteinte.${cta ? ` ${cta}` : ""}` };
   }
+  // Account-level subscription: a new store inherits the owner's best plan
+  // (a PRO merchant's 2nd store is PRO, not Starter).
+  const inherited = owned.length === 0 ? "starter" : owned.map((o) => o.plan).sort((a, b) => getPlan(b).priceMonthly - getPlan(a).priceMonthly)[0];
   let publicId = generateStorePublicId();
   for (let i = 0; i < 5; i++) {
     const clash = await db.query.stores.findFirst({ where: eq(stores.publicId, publicId) });
@@ -76,6 +79,8 @@ export async function createStoreAction(_: FormState, formData: FormData): Promi
       vertical: tpl.vertical,
       tagline: tpl.tagline,
       content: { phone: phone || undefined, whatsapp: phone || undefined },
+      plan: inherited,
+      planStatus: "active",
       // Starter is NOT a trial: no expiration, no card, no time limit.
       trialEndsAt: null,
     })
@@ -100,7 +105,7 @@ export async function createStoreAction(_: FormState, formData: FormData): Promi
     );
   }
 
-  await db.insert(subscriptions).values({ storeId: store.id, plan: "starter", status: "active", provider: "manual" });
+  await db.insert(subscriptions).values({ storeId: store.id, plan: inherited, status: "active", provider: "manual" });
   redirect("/dashboard?welcome=1");
 }
 
