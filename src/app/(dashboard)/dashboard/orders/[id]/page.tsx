@@ -3,14 +3,16 @@ import { notFound } from "next/navigation";
 import { and, asc, eq } from "drizzle-orm";
 import { ArrowLeft, Phone, MessageCircle, MapPin } from "lucide-react";
 import { db } from "@/db";
-import { orderEvents, orders } from "@/db/schema";
+import { orderEvents, orders, shipments, shippingCredentials } from "@/db/schema";
 import { requireStore } from "@/lib/auth";
+import { hasFeature } from "@/lib/plans";
 import { STATUS_META } from "@/lib/commerce";
 import { wilayaByCode, ZONE_ETA, formatPhone } from "@/lib/algeria";
 import { formatDZD, formatDateTime } from "@/lib/utils";
 import { StatusBadge } from "@/components/dashboard/ui";
 import { OrderActions } from "@/components/dashboard/OrderActions";
 import { RiskCard } from "@/components/dashboard/RiskBadge";
+import { ShippingCard } from "@/components/dashboard/ShippingCard";
 import { getStoreRiskMap } from "@/lib/risk-data";
 
 export default async function OrderDetail({ params }: { params: Promise<{ id: string }> }) {
@@ -21,6 +23,12 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
   if (!order) notFound();
   const events = await db.query.orderEvents.findMany({ where: eq(orderEvents.orderId, order.id), orderBy: [asc(orderEvents.createdAt)] });
   const risk = (await getStoreRiskMap(store.id, [order])).get(order.id)!;
+  const shipment = hasFeature(store.plan, "shippingIntegrations")
+    ? ((await db.query.shipments.findFirst({ where: eq(shipments.orderId, order.id) })) ?? null)
+    : null;
+  const shipCreds = hasFeature(store.plan, "shippingIntegrations")
+    ? await db.query.shippingCredentials.findMany({ where: and(eq(shippingCredentials.storeId, store.id), eq(shippingCredentials.isActive, true)) })
+    : [];
   const w = wilayaByCode(order.wilayaCode);
   const intl = order.customerPhone.replace(/^0/, "213");
   const waText = encodeURIComponent(`Bonjour ${order.customerName.split(" ")[0]}, ici ${store.name}. Nous confirmons votre commande n°${order.number} (${order.items.map((i) => i.name).join(", ")}) — total ${formatDZD(order.total)} à payer à la livraison. Confirmez-vous ?`);
@@ -109,6 +117,13 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
             {order.customerId && <Link href={`/dashboard/customers?q=${order.customerPhone}`} className="mt-4 block text-xs font-medium text-zinc-600 hover:text-zinc-900">Voir la fiche client →</Link>}
           </div>
           <RiskCard risk={risk} />
+          {hasFeature(store.plan, "shippingIntegrations") && (
+            <ShippingCard
+              orderId={order.id}
+              shipment={shipment}
+              creds={shipCreds.map((c) => ({ id: c.id, provider: c.provider, company: c.company, label: c.label }))}
+            />
+          )}
           <div className="rounded-2xl border border-dashed border-zinc-300 p-4 text-xs leading-relaxed text-zinc-500">
             <p className="font-semibold text-zinc-700">Script de confirmation</p>
             <p className="mt-1">« Bonjour {order.customerName.split(" ")[0]}, ici {store.name}. Vous avez commandé {order.items[0]?.name}. Total {formatDZD(order.total)} à payer au livreur, livraison {w ? ZONE_ETA[w.zone] : ""}. On confirme ? »</p>

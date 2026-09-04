@@ -385,6 +385,57 @@ export const aiUsage = pgTable(
 export type AiUsage = typeof aiUsage.$inferSelect;
 
 /* -------------------------------------------------------------------------- */
+/*  Shipping (provider layer: merchant brings their own courier account)        */
+/*  ORDELY never pays shipping — it manages + tracks. New company = new row.   */
+/* -------------------------------------------------------------------------- */
+
+export const shippingCredentials = pgTable(
+  "shipping_credentials",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    provider: text("provider").notNull(), // yalidine | zr | ecotrack
+    company: text("company"), // EcoTrack tenant id (dhd, conexlog, …) or null
+    label: text("label").notNull().default(""),
+    credentials: jsonb("credentials").$type<Record<string, string>>().notNull().default({}),
+    isActive: boolean("is_active").notNull().default(true),
+    lastTestAt: timestamp("last_test_at", { withTimezone: true }),
+    lastTestOk: boolean("last_test_ok"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("shipping_credentials_store_idx").on(t.storeId)],
+);
+
+export const shipments = pgTable(
+  "shipments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    orderId: uuid("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" })
+      .unique(),
+    provider: text("provider").notNull(),
+    company: text("company"),
+    trackingNumber: text("tracking_number").notNull(),
+    labelUrl: text("label_url"),
+    status: text("status").notNull().default("created"),
+    lastCheckedAt: timestamp("last_checked_at", { withTimezone: true }),
+    raw: jsonb("raw").$type<Record<string, unknown>>().notNull().default(sql`'{}'::jsonb`),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("shipments_store_idx").on(t.storeId)],
+);
+
+export type ShippingCredential = typeof shippingCredentials.$inferSelect;
+export type Shipment = typeof shipments.$inferSelect;
+
+/* -------------------------------------------------------------------------- */
 /*  Team (PRO: 3 seats, BUSINESS: 10 — Starter is owner-only, UI hidden)        */
 /*  The owner is implicit via stores.ownerId and never has a member row.        */
 /* -------------------------------------------------------------------------- */
