@@ -166,7 +166,7 @@ export default async function Landing() {
                 ["Export CSV", PLANS.map((p) => (p.flags.csvExport ? "✓" : "—"))],
                 ["Analytics avancés", PLANS.map((p) => (p.flags.advancedAnalytics ? "✓" : "—"))],
                 ["Équipe & rôles", PLANS.map((p) => (p.flags.teamManagement ? "✓" : "—"))],
-                ["Intégrations livraison", PLANS.map((p) => (p.flags.shippingIntegrations ? "Bientôt" : "—"))],
+                ["Intégrations livraison", PLANS.map((p) => (p.flags.shippingIntegrations ? "✓" : "—"))],
                 ["Automatisations", PLANS.map((p) => (p.flags.advancedAutomation ? "Avancées (bientôt)" : p.flags.basicAutomation ? "De base (bientôt)" : "—"))],
                 ["Support prioritaire", PLANS.map((p) => (p.flags.prioritySupport ? "✓" : "—"))],
               ].map(([label, vals]) => (
