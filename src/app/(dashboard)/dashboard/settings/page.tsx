@@ -2,6 +2,7 @@ import { requireStore } from "@/lib/auth";
 import { isSupabaseConfigured, isSupabaseStorageConfigured } from "@/lib/supabase";
 import { PageHeader } from "@/components/dashboard/ui";
 import { SettingsForm } from "@/components/dashboard/SettingsForm";
+import { StoreIdBox } from "@/components/dashboard/StoreIdBox";
 
 export default async function SettingsPage() {
   const { store } = await requireStore();
@@ -13,6 +14,7 @@ export default async function SettingsPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2"><SettingsForm key={store.updatedAt.toISOString()} store={store} /></div>
         <div className="space-y-4">
+          {store.publicId && <StoreIdBox publicId={store.publicId} />}
           <div className="db-card p-5 text-sm">
             <p className="font-semibold">Infrastructure</p>
             <ul className="mt-3 space-y-2 text-xs text-zinc-600">

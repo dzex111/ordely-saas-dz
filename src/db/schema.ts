@@ -125,6 +125,7 @@ export const stores = pgTable(
     ownerId: uuid("owner_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    publicId: text("public_id").unique(), // merchant-facing ID (ORD-XXXXXX), given to the admin
     subdomain: text("subdomain").notNull().unique(),
     name: text("name").notNull(),
     tagline: text("tagline").notNull().default(""),

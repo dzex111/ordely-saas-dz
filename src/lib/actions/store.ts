@@ -8,6 +8,7 @@ import { db } from "@/db";
 import { products, stores, subscriptions, type BrandOverrides, type StoreContent, type StoreSettings } from "@/db/schema";
 import { getCurrentStore, requireStore, requireUser } from "@/lib/auth";
 import { getTemplate, TEMPLATE_IDS } from "@/lib/templates";
+import { generateStorePublicId } from "@/lib/store-id";
 import { isValidSubdomain, slugify } from "@/lib/utils";
 import { WILAYAS } from "@/lib/algeria";
 import type { FormState } from "./auth";
@@ -44,10 +45,17 @@ export async function createStoreAction(_: FormState, formData: FormData): Promi
   if (taken) return { error: "Ce sous-domaine est déjà pris." };
 
   const tpl = getTemplate(template);
+  let publicId = generateStorePublicId();
+  for (let i = 0; i < 5; i++) {
+    const clash = await db.query.stores.findFirst({ where: eq(stores.publicId, publicId) });
+    if (!clash) break;
+    publicId = generateStorePublicId();
+  }
   const [store] = await db
     .insert(stores)
     .values({
       ownerId: user.id,
+      publicId,
       name,
       subdomain,
       template,
