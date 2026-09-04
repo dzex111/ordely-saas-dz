@@ -150,6 +150,7 @@ export const stores = pgTable(
     planStatus: text("plan_status").notNull().default("active"),
     trialEndsAt: timestamp("trial_ends_at", { withTimezone: true }),
     published: boolean("published").notNull().default(true),
+    suspended: boolean("suspended").notNull().default(false), // admin-only kill switch; merchant cannot unset
     orderSeq: integer("order_seq").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

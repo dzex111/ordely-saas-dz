@@ -11,6 +11,12 @@ export default async function SettingsPage() {
   return (
     <>
       <PageHeader title="Paramètres" description="Adresse, publication, frais de livraison par wilaya." />
+      {store.suspended && (
+        <div className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-800">
+          <p className="font-semibold">Boutique suspendue par l’admin.</p>
+          <p className="mt-1 text-xs leading-relaxed">Votre boutique est hors ligne et le restera même si vous la republiez. Contactez l’admin via la page Contact pour régulariser la situation.</p>
+        </div>
+      )}
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2"><SettingsForm key={store.updatedAt.toISOString()} store={store} /></div>
         <div className="space-y-4">

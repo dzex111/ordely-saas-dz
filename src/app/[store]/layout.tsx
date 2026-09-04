@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: { default: store.name, template: `%s · ${store.name}` },
     description: store.tagline || store.content.heroSub || `${store.name} — paiement à la livraison partout en Algérie.`,
     openGraph: { title: store.name, description: store.tagline, type: "website" },
-    robots: store.published ? undefined : { index: false },
+    robots: store.published && !store.suspended ? undefined : { index: false },
   };
 }
 
@@ -24,6 +24,7 @@ export default async function StoreLayout({ children, params }: Props) {
   const ctx = await getStoreCtx(sub);
   if (!ctx) notFound();
   const { store, theme, base } = ctx;
+  if (store.suspended) notFound();
   const dark = isDark(theme.cssVars["--bg"]);
   return (
     <div className={dark ? "sf dark" : "sf"} style={theme.cssVars as React.CSSProperties} lang={store.settings.language}>

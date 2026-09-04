@@ -41,7 +41,7 @@ export async function placeOrderAction(_: FormState, formData: FormData): Promis
   if (d.deliveryType === "home" && d.address.length < 5) return { error: "Adresse de livraison requise pour la livraison à domicile." };
 
   const store = await db.query.stores.findFirst({ where: eq(stores.id, d.storeId) });
-  if (!store || !store.published) return { error: "Boutique indisponible." };
+  if (!store || !store.published || store.suspended) return { error: "Boutique indisponible." };
   const product = await db.query.products.findFirst({
     where: and(eq(products.id, d.productId), eq(products.storeId, store.id), eq(products.status, "active")),
   });

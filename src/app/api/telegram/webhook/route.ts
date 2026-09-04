@@ -39,13 +39,14 @@ async function storeCard(chatId: ChatId, storeId: string, messageId?: number) {
     `<b>ID:</b> ${esc(s.publicId ?? "—")}`,
     `<b>الرابط:</b> ${esc(s.subdomain)}`,
     `<b>الخطة الحالية:</b> ${esc(s.plan)} (${esc(s.planStatus)})`,
+    `<b>التعليق الإداري:</b> ${s.suspended ? "موقوف" : "يعمل"}`,
     `<b>المنتجات:</b> ${pc} | <b>الطلبات:</b> ${oc}`,
     `<b>المالك:</b> ${esc(owner?.email ?? s.ownerId)}`,
   ].join("\n");
   const markup = {
     inline_keyboard: [
       [btn("Starter", `plan:${s.id}:starter`), btn("Growth", `plan:${s.id}:growth`), btn("Scale", `plan:${s.id}:scale`)],
-      [btn(s.published ? "إيقاف النشر" : "تفعيل النشر", `pub:${s.id}`), btn("حذف المتجر", `del:${s.id}`)],
+      [btn(s.suspended ? "فك التعليق" : "تعليق المتجر", `pub:${s.id}`), btn("حذف المتجر", `del:${s.id}`)],
     ],
   };
   if (messageId) {
@@ -105,8 +106,10 @@ async function handleUpdate(update: {
     }
     if (action === "pub") {
       const [s] = await db.select().from(stores).where(eq(stores.id, rest[0])).limit(1);
-      if (s) await db.update(stores).set({ published: !s.published, updatedAt: new Date() }).where(eq(stores.id, s.id));
+      if (s) await db.update(stores).set({ suspended: !s.suspended, updatedAt: new Date() }).where(eq(stores.id, s.id));
       await storeCard(chatId, rest[0], cb.message?.message_id);
+      const [updated] = await db.select().from(stores).where(eq(stores.id, rest[0])).limit(1);
+      await tg("sendMessage", { chat_id: chatId, text: updated?.suspended ? "تم <b>تعليق</b> المتجر — لن يعود للعمل من الإعدادات." : "تم <b>فك التعليق</b> — المتجر يعمل.", parse_mode: "HTML" });
       return;
     }
     if (action === "del") {
