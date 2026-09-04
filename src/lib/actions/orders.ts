@@ -9,6 +9,8 @@ import { customers, orderEvents, orders, products, stores, ORDER_STATUSES, type 
 import { requireStore } from "@/lib/auth";
 import { clientIp } from "@/lib/rate-limit";
 import { st, storeLangOf } from "@/lib/store-i18n";
+import { formatDZD } from "@/lib/utils";
+import { pushNotification } from "@/lib/actions/notifications";
 import { normalizePhone, wilayaByCode } from "@/lib/algeria";
 import { computeDeliveryFee, ORDER_TRANSITIONS } from "@/lib/commerce";
 import type { FormState } from "./auth";
@@ -158,6 +160,13 @@ export async function placeOrderAction(_: FormState, formData: FormData): Promis
   }
 
   revalidatePath("/dashboard", "layout");
+  await pushNotification({
+    storeId: store.id,
+    type: "new_order",
+    title: `Nouvelle commande — ${d.name}`,
+    body: `${formatDZD(total)} · ${phone}`,
+    link: `/dashboard/orders/${orderId}`,
+  });
   redirect(`/${store.subdomain}/merci/${orderId}`);
 }
 

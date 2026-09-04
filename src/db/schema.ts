@@ -331,3 +331,29 @@ export type Order = typeof orders.$inferSelect;
 export type OrderEvent = typeof orderEvents.$inferSelect;
 export type Subscription = typeof subscriptions.$inferSelect;
 export type ContactRequest = typeof contactRequests.$inferSelect;
+
+/* -------------------------------------------------------------------------- */
+/*  Notifications (merchant inbox: new orders, plan changes, restrictions)      */
+/* -------------------------------------------------------------------------- */
+
+export const NOTIFICATION_TYPES = ["new_order", "plan_changed", "suspended", "unsuspended", "limit_warning"] as const;
+export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
+
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    type: text("type").$type<NotificationType>().notNull(),
+    title: text("title").notNull(),
+    body: text("body").notNull().default(""),
+    link: text("link").notNull().default(""),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("notifications_store_idx").on(t.storeId), index("notifications_store_read_idx").on(t.storeId, t.readAt)],
+);
+
+export type Notification = typeof notifications.$inferSelect;

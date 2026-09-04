@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { desc, eq, gte } from "drizzle-orm";
 import { db } from "@/db";
 import { orders, products, stores, subscriptions, users, type PlanId } from "@/db/schema";
+import { pushNotification } from "@/lib/actions/notifications";
 
 /* Telegram Super-Admin — owner only. Merchants never see this.
  * Flow: admin pastes a merchant store ID (ORD-XXXXXX) → store card opens
@@ -76,6 +77,7 @@ async function handleUpdate(update: {
       const [id, plan] = rest as [string, PlanId];
       await db.update(stores).set({ plan, planStatus: "active", trialEndsAt: null, updatedAt: new Date() }).where(eq(stores.id, id));
       await db.insert(subscriptions).values({ storeId: id, plan, status: "active", provider: "manual", metadata: { source: "telegram-admin" } });
+      await pushNotification({ storeId: id, type: "plan_changed", title: `Plan changé — ${plan}`, body: "Activé par l’admin. Votre boutique est à jour.", link: "/dashboard/billing" });
       await storeCard(chatId, id, cb.message?.message_id);
       await tg("sendMessage", { chat_id: chatId, text: `تم تغيير الاشتراك إلى <b>${esc(plan)}</b>.`, parse_mode: "HTML" });
       return;
@@ -106,7 +108,16 @@ async function handleUpdate(update: {
     }
     if (action === "pub") {
       const [s] = await db.select().from(stores).where(eq(stores.id, rest[0])).limit(1);
-      if (s) await db.update(stores).set({ suspended: !s.suspended, updatedAt: new Date() }).where(eq(stores.id, s.id));
+      if (s) {
+        await db.update(stores).set({ suspended: !s.suspended, updatedAt: new Date() }).where(eq(stores.id, s.id));
+        await pushNotification({
+          storeId: s.id,
+          type: s.suspended ? "unsuspended" : "suspended",
+          title: s.suspended ? "Boutique réactivée" : "Boutique suspendue par l’admin",
+          body: s.suspended ? "Votre boutique est de nouveau en ligne." : "Contactez l’admin via la page Contact pour régulariser la situation.",
+          link: "/dashboard/settings",
+        });
+      }
       await storeCard(chatId, rest[0], cb.message?.message_id);
       const [updated] = await db.select().from(stores).where(eq(stores.id, rest[0])).limit(1);
       await tg("sendMessage", { chat_id: chatId, text: updated?.suspended ? "تم <b>تعليق</b> المتجر — لن يعود للعمل من الإعدادات." : "تم <b>فك التعليق</b> — المتجر يعمل.", parse_mode: "HTML" });
