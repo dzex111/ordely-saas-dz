@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, gte } from "drizzle-orm";
 import { db } from "@/db";
 import { orders, products, stores, subscriptions, users, type PlanId } from "@/db/schema";
 
@@ -45,6 +45,7 @@ async function storeCard(chatId: ChatId, storeId: string, messageId?: number) {
   const markup = {
     inline_keyboard: [
       [btn("Starter", `plan:${s.id}:starter`), btn("Growth", `plan:${s.id}:growth`), btn("Scale", `plan:${s.id}:scale`)],
+      [btn(s.published ? "إيقاف النشر" : "تفعيل النشر", `pub:${s.id}`), btn("حذف المتجر", `del:${s.id}`)],
     ],
   };
   if (messageId) {
@@ -76,6 +77,57 @@ async function handleUpdate(update: {
       await db.insert(subscriptions).values({ storeId: id, plan, status: "active", provider: "manual", metadata: { source: "telegram-admin" } });
       await storeCard(chatId, id, cb.message?.message_id);
       await tg("sendMessage", { chat_id: chatId, text: `تم تغيير الاشتراك إلى <b>${esc(plan)}</b>.`, parse_mode: "HTML" });
+      return;
+    }
+    if (action === "pulse") {
+      const d = new Date();
+      const dayStart = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - 3600_000);
+      const [allStores, todayOrders, pendingOrders, delivered] = await Promise.all([
+        db.select({ id: stores.id }).from(stores).limit(100000),
+        db.select({ id: orders.id }).from(orders).where(gte(orders.createdAt, dayStart)).limit(100000),
+        db.select({ id: orders.id }).from(orders).where(eq(orders.status, "pending")).limit(100000),
+        db.select({ total: orders.total }).from(orders).where(eq(orders.status, "delivered")).limit(1000000),
+      ]);
+      const revenue = delivered.reduce((sum, o) => sum + (o.total || 0), 0);
+      await tg("sendMessage", {
+        chat_id: chatId,
+        text: [
+          "<b>نبض المنصة</b>",
+          "",
+          `<b>المتاجر:</b> ${allStores.length}`,
+          `<b>طلبات اليوم:</b> ${todayOrders.length}`,
+          `<b>طلبات معلقة:</b> ${pendingOrders.length}`,
+          `<b>إيراد المسلّمة:</b> ${revenue.toLocaleString("fr-FR")} DA`,
+        ].join("\n"),
+        parse_mode: "HTML",
+      });
+      return;
+    }
+    if (action === "pub") {
+      const [s] = await db.select().from(stores).where(eq(stores.id, rest[0])).limit(1);
+      if (s) await db.update(stores).set({ published: !s.published, updatedAt: new Date() }).where(eq(stores.id, s.id));
+      await storeCard(chatId, rest[0], cb.message?.message_id);
+      return;
+    }
+    if (action === "del") {
+      const [s] = await db.select().from(stores).where(eq(stores.id, rest[0])).limit(1);
+      await tg("sendMessage", {
+        chat_id: chatId,
+        text: `تأكيد حذف <b>${esc(s?.name)}</b>؟ سيحذف المنتجات والطلبات والعملاء نهائياً ولا يمكن التراجع.`,
+        parse_mode: "HTML",
+        reply_markup: { inline_keyboard: [[btn("نعم، احذف نهائياً", `delyes:${rest[0]}`), btn("تراجع", `back:${rest[0]}`)]] },
+      });
+      return;
+    }
+    if (action === "back") {
+      await storeCard(chatId, rest[0]);
+      return;
+    }
+    if (action === "delyes") {
+      const [s] = await db.select().from(stores).where(eq(stores.id, rest[0])).limit(1);
+      await db.delete(stores).where(eq(stores.id, rest[0]));
+      await tg("sendMessage", { chat_id: chatId, text: `تم حذف المتجر <b>${esc(s?.name)}</b> نهائياً.`, parse_mode: "HTML" });
+      return;
     }
     return;
   }
@@ -86,6 +138,7 @@ async function handleUpdate(update: {
       chat_id: chatId,
       text: "<b>لوحة تحكم ORDELY</b>\n\nأرسل <b>ID المتجر</b> (مثال: ORD-X7K2P9) لفتح قائمة التحكم فيه.",
       parse_mode: "HTML",
+      reply_markup: { inline_keyboard: [[btn("نبض المنصة", "pulse")]] },
     });
     return;
   }
