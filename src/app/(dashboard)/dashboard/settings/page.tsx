@@ -1,12 +1,15 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { requireStore } from "@/lib/auth";
+import { denyUnless } from "@/lib/team";
 import { isSupabaseConfigured, isSupabaseStorageConfigured } from "@/lib/supabase";
 import { PageHeader } from "@/components/dashboard/ui";
 import { SettingsForm } from "@/components/dashboard/SettingsForm";
 import { StoreIdBox } from "@/components/dashboard/StoreIdBox";
 
 export default async function SettingsPage() {
-  const { store } = await requireStore();
+  const { store, user } = await requireStore();
+  if (await denyUnless(store, user, "manageSettings")) redirect("/dashboard");
   const sb = isSupabaseConfigured();
   const sbs = isSupabaseStorageConfigured();
   return (

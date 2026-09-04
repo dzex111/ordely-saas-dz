@@ -1,14 +1,37 @@
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { and, eq, gt } from "drizzle-orm";
+import { and, asc, eq, gt } from "drizzle-orm";
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { db } from "@/db";
-import { sessions, stores, users, type Store, type User } from "@/db/schema";
+import { sessions, storeMembers, stores, users, type Store, type TeamRole, type User } from "@/db/schema";
 import { createServerSupabase, isSupabaseConfigured } from "@/lib/supabase";
 
 const SESSION_COOKIE = "ordely_session";
+export const ACTIVE_STORE_COOKIE = "ordely_store";
 const SESSION_DAYS = 30;
+
+async function isStoreMember(storeId: string, userId: string): Promise<boolean> {
+  const row = await db.query.storeMembers.findFirst({
+    where: and(eq(storeMembers.storeId, storeId), eq(storeMembers.userId, userId)),
+    columns: { id: true },
+  });
+  return !!row;
+}
+
+async function memberRole(storeId: string, userId: string) {
+  const row = await db.query.storeMembers.findFirst({
+    where: and(eq(storeMembers.storeId, storeId), eq(storeMembers.userId, userId)),
+    columns: { role: true },
+  });
+  return row?.role ?? null;
+}
+
+async function firstMemberStore(userId: string): Promise<Store | null> {
+  const membership = await db.query.storeMembers.findFirst({ where: eq(storeMembers.userId, userId) });
+  if (!membership) return null;
+  return (await db.query.stores.findFirst({ where: eq(stores.id, membership.storeId) })) ?? null;
+}
 
 /* ------------------------------ password utils ----------------------------- */
 
@@ -165,13 +188,53 @@ export async function requireUser(): Promise<User> {
 export const getCurrentStore = cache(async (): Promise<Store | null> => {
   const user = await getCurrentUser();
   if (!user) return null;
-  return (await db.query.stores.findFirst({ where: eq(stores.ownerId, user.id) })) ?? null;
+  // Active store chosen by the merchant (team switching), validated as owned or member.
+  try {
+    const jar = await cookies();
+    const activeId = jar.get(ACTIVE_STORE_COOKIE)?.value;
+    if (activeId) {
+      const s = await db.query.stores.findFirst({ where: eq(stores.id, activeId) });
+      if (s && (s.ownerId === user.id || (await isStoreMember(s.id, user.id)))) return s;
+    }
+  } catch {
+    // cookies() unavailable (e.g. static context) — fall through to defaults.
+  }
+  return (
+    (await db.query.stores.findFirst({ where: eq(stores.ownerId, user.id), orderBy: [asc(stores.createdAt)] })) ??
+    (await firstMemberStore(user.id))
+  );
 });
 
+/** First store OWNED by the user (ignores memberships) — for onboarding/create flows. */
+export async function getOwnedStore(): Promise<Store | null> {
+  const user = await getCurrentUser();
+  if (!user) return null;
+  return (await db.query.stores.findFirst({ where: eq(stores.ownerId, user.id), orderBy: [asc(stores.createdAt)] })) ?? null;
+}
+
+/** All stores the user can access (owned first, then member), for the switcher. */
+export async function getAccessibleStores(): Promise<Store[]> {
+  const user = await getCurrentUser();
+  if (!user) return [];
+  const [owned, memberships] = await Promise.all([
+    db.query.stores.findMany({ where: eq(stores.ownerId, user.id), orderBy: [asc(stores.createdAt)] }),
+    db.query.storeMembers.findMany({ where: eq(storeMembers.userId, user.id) }),
+  ]);
+  const ownedIds = new Set(owned.map((s) => s.id));
+  const memberStores = (
+    await Promise.all(
+      memberships.map((m) => db.query.stores.findFirst({ where: eq(stores.id, m.storeId) })),
+    )
+  ).filter((s): s is Store => !!s && !ownedIds.has(s.id));
+  return [...owned, ...memberStores];
+}
+
 /** Dashboard guard: needs a user AND a store; otherwise routes to the right step. */
-export async function requireStore(): Promise<{ user: User; store: Store }> {
+export async function requireStore(): Promise<{ user: User; store: Store; role: TeamRole }> {
   const user = await requireUser();
   const store = await getCurrentStore();
   if (!store) redirect("/onboarding");
-  return { user, store };
+  const role = store.ownerId === user.id ? ("owner" as const) : ((await memberRole(store.id, user.id)) ?? null);
+  if (!role) redirect("/onboarding");
+  return { user, store, role };
 }

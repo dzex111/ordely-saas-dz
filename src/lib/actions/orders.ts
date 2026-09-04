@@ -7,6 +7,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { customers, orderEvents, orders, products, stores, ORDER_STATUSES, type OrderStatus } from "@/db/schema";
 import { requireStore } from "@/lib/auth";
+import { denyUnless } from "@/lib/team";
 import { clientIp } from "@/lib/rate-limit";
 import { getPlan, startOfBillingMonth, upgradeCta } from "@/lib/plans";
 import { st, storeLangOf } from "@/lib/store-i18n";
@@ -191,7 +192,9 @@ export async function placeOrderAction(_: FormState, formData: FormData): Promis
 
 
 export async function updateOrderStatusAction(orderId: string, to: string, note = ""): Promise<FormState> {
-  const { store } = await requireStore();
+  const { store, user } = await requireStore();
+  const denied = await denyUnless(store, user, "manageOrders");
+  if (denied) return { error: denied };
   if (!(ORDER_STATUSES as readonly string[]).includes(to)) return { error: "Statut inconnu." };
   const target = to as OrderStatus;
   const order = await db.query.orders.findFirst({ where: and(eq(orders.id, orderId), eq(orders.storeId, store.id)) });
@@ -217,7 +220,9 @@ export async function updateOrderStatusAction(orderId: string, to: string, note 
 }
 
 export async function updateOrderNoteAction(orderId: string, _: FormState, formData: FormData): Promise<FormState> {
-  const { store } = await requireStore();
+  const { store, user } = await requireStore();
+  const denied = await denyUnless(store, user, "manageOrders");
+  if (denied) return { error: denied };
   const note = String(formData.get("internalNote") ?? "").slice(0, 1000);
   await db.update(orders).set({ internalNote: note, updatedAt: new Date() }).where(and(eq(orders.id, orderId), eq(orders.storeId, store.id)));
   revalidatePath(`/dashboard/orders/${orderId}`);

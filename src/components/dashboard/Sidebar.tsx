@@ -1,28 +1,76 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { LayoutDashboard, ShoppingBag, Package, Users, Palette, Settings, CreditCard, ExternalLink } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { useTransition } from "react";
+import { LayoutDashboard, ShoppingBag, Package, Users, Palette, Settings, CreditCard, ExternalLink, UsersRound, ArrowLeftRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { setActiveStoreAction } from "@/lib/actions/team";
+import type { TeamAction } from "@/lib/team";
 
-const NAV = [
+const NAV: { href: string; label: string; icon: typeof LayoutDashboard; exact?: boolean; need?: TeamAction | "team" }[] = [
   { href: "/dashboard", label: "Vue d’ensemble", icon: LayoutDashboard, exact: true },
   { href: "/dashboard/orders", label: "Commandes", icon: ShoppingBag },
   { href: "/dashboard/products", label: "Produits", icon: Package },
   { href: "/dashboard/customers", label: "Clients", icon: Users },
-  { href: "/dashboard/customize", label: "Apparence", icon: Palette },
-  { href: "/dashboard/settings", label: "Paramètres", icon: Settings },
-  { href: "/dashboard/billing", label: "Abonnement", icon: CreditCard },
+  { href: "/dashboard/customize", label: "Apparence", icon: Palette, need: "manageAppearance" },
+  { href: "/dashboard/team", label: "Équipe", icon: UsersRound, need: "team" },
+  { href: "/dashboard/settings", label: "Paramètres", icon: Settings, need: "manageSettings" },
+  { href: "/dashboard/billing", label: "Abonnement", icon: CreditCard, need: "manageBilling" },
 ];
 
-export function Sidebar({ storeName, storeHref, pendingCount, plan }: { storeName: string; storeHref: string; pendingCount: number; plan: string }) {
+export type SidebarStore = { id: string; name: string; subdomain: string };
+
+export function Sidebar({
+  storeName,
+  storeHref,
+  pendingCount,
+  plan,
+  allowed,
+  showTeam,
+  stores,
+  currentStoreId,
+}: {
+  storeName: string;
+  storeHref: string;
+  pendingCount: number;
+  plan: string;
+  allowed: TeamAction[];
+  showTeam: boolean;
+  stores: SidebarStore[];
+  currentStoreId: string;
+}) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [switching, startSwitch] = useTransition();
+  const visible = NAV.filter((n) => !n.need || (n.need === "team" ? showTeam : allowed.includes(n.need)));
+
   return (
     <aside className="flex h-full w-full flex-col md:w-60">
       <div className="px-4 pb-2 pt-5">
         <Link href="/" aria-label="ORDELY - home"><img src="/logo.svg" alt="ORDELY" className="h-6 w-auto" /></Link>
         <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-3 shadow-sm">
-          <p className="truncate text-sm font-semibold">{storeName}</p>
+          {stores.length > 1 ? (
+            <label className="flex items-center gap-1.5">
+              <ArrowLeftRight className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
+              <select
+                value={currentStoreId}
+                disabled={switching}
+                onChange={(e) => startSwitch(async () => {
+                  await setActiveStoreAction(e.target.value);
+                  router.refresh();
+                })}
+                className="w-full truncate bg-transparent text-sm font-semibold outline-none"
+                aria-label="Changer de boutique"
+              >
+                {stores.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            <p className="truncate text-sm font-semibold">{storeName}</p>
+          )}
           <div className="mt-1 flex items-center justify-between">
             <span className="rounded-md bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-600">{plan}</span>
             <a href={storeHref} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-900">
@@ -32,7 +80,7 @@ export function Sidebar({ storeName, storeHref, pendingCount, plan }: { storeNam
         </div>
       </div>
       <nav className="flex flex-1 flex-row gap-1 overflow-x-auto px-3 py-2 md:flex-col md:overflow-visible">
-        {NAV.map((n) => {
+        {visible.map((n) => {
           const active = n.exact ? pathname === n.href : pathname.startsWith(n.href);
           return (
             <Link key={n.href} href={n.href} className={cn("flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition", active ? "bg-zinc-900 text-white shadow-sm" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900")}>

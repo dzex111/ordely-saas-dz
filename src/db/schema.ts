@@ -381,3 +381,48 @@ export const aiUsage = pgTable(
 );
 
 export type AiUsage = typeof aiUsage.$inferSelect;
+
+/* -------------------------------------------------------------------------- */
+/*  Team (PRO: 3 seats, BUSINESS: 10 — Starter is owner-only, UI hidden)        */
+/*  The owner is implicit via stores.ownerId and never has a member row.        */
+/* -------------------------------------------------------------------------- */
+
+export const MEMBER_ROLES = ["admin", "member"] as const;
+export type MemberRole = (typeof MEMBER_ROLES)[number];
+export type TeamRole = "owner" | MemberRole;
+
+export const storeMembers = pgTable(
+  "store_members",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: text("role").$type<MemberRole>().notNull().default("member"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("store_members_store_user_idx").on(t.storeId, t.userId), index("store_members_user_idx").on(t.userId)],
+);
+
+export const storeInvites = pgTable(
+  "store_invites",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    role: text("role").$type<MemberRole>().notNull().default("member"),
+    token: text("token").notNull().unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("store_invites_store_idx").on(t.storeId)],
+);
+
+export type StoreMember = typeof storeMembers.$inferSelect;
+export type StoreInvite = typeof storeInvites.$inferSelect;

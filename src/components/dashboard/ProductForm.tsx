@@ -7,9 +7,9 @@ import { createProductAction, deleteProductAction, updateProductAction, uploadIm
 import { slugify } from "@/lib/utils";
 import { Notice } from "./ui";
 
-type Props = { product?: Product; storePath: string };
+type Props = { product?: Product; storePath: string; canDelete?: boolean };
 
-export function ProductForm({ product, storePath }: Props) {
+export function ProductForm({ product, storePath, canDelete = true }: Props) {
   const isEdit = Boolean(product);
   const boundUpdate = product ? updateProductAction.bind(null, product.id) : null;
   const [state, action, pending] = useActionState(boundUpdate ?? createProductAction, null);
@@ -189,8 +189,8 @@ export function ProductForm({ product, storePath }: Props) {
           <button type="submit" disabled={pending || uploading} className="db-btn w-full !py-2.5">
             {pending && <Loader2 className="h-4 w-4 animate-spin" />} {isEdit ? "Enregistrer les modifications" : "Publier le produit"}
           </button>
-          {isEdit && product && (
-            <button type="button" disabled={deleting} onClick={() => { if (confirm("Supprimer définitivement ce produit ?")) startDelete(() => deleteProductAction(product.id)); }} className="db-btn-danger w-full">
+          {isEdit && product && canDelete && (
+            <button type="button" disabled={deleting} onClick={() => { if (confirm("Supprimer définitivement ce produit ?")) startDelete(async () => { const r = await deleteProductAction(product.id); if (r && "error" in r) alert(r.error); }); }} className="db-btn-danger w-full">
               {deleting ? "Suppression…" : "Supprimer le produit"}
             </button>
           )}

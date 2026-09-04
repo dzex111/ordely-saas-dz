@@ -6,10 +6,11 @@ import { and, eq, ne } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import { products, stores, subscriptions, type BrandOverrides, type StoreContent, type StoreSettings } from "@/db/schema";
-import { getCurrentStore, requireStore, requireUser } from "@/lib/auth";
+import { getOwnedStore, requireStore, requireUser } from "@/lib/auth";
 import { getTemplate, TEMPLATE_IDS } from "@/lib/templates";
 import { getPlan, upgradeCta } from "@/lib/plans";
 import { generateStorePublicId } from "@/lib/store-id";
+import { denyUnless } from "@/lib/team";
 import { isValidSubdomain, slugify } from "@/lib/utils";
 import { WILAYAS } from "@/lib/algeria";
 import type { FormState } from "./auth";
@@ -25,7 +26,7 @@ function revalidateStore(subdomain: string) {
 
 export async function createStoreAction(_: FormState, formData: FormData): Promise<FormState> {
   const user = await requireUser();
-  const existing = await getCurrentStore();
+  const existing = await getOwnedStore();
   if (existing) redirect("/dashboard");
 
   const parsed = z
@@ -106,7 +107,9 @@ export async function createStoreAction(_: FormState, formData: FormData): Promi
 /* -------------------------------- customize -------------------------------- */
 
 export async function changeTemplateAction(templateId: string) {
-  const { store } = await requireStore();
+  const { store, user } = await requireStore();
+  const denied = await denyUnless(store, user, "manageAppearance");
+  if (denied) return { error: denied };
   if (!TEMPLATE_IDS.includes(templateId)) return { error: "Template inconnu." };
   const tpl = getTemplate(templateId);
   await db
@@ -118,7 +121,9 @@ export async function changeTemplateAction(templateId: string) {
 }
 
 export async function updateBrandAction(_: FormState, formData: FormData): Promise<FormState> {
-  const { store } = await requireStore();
+  const { store, user } = await requireStore();
+  const denied = await denyUnless(store, user, "manageAppearance");
+  if (denied) return { error: denied };
   const parsed = z
     .object({
       primary: hex,
@@ -152,13 +157,17 @@ export async function updateBrandAction(_: FormState, formData: FormData): Promi
 }
 
 export async function resetBrandAction() {
-  const { store } = await requireStore();
+  const { store, user } = await requireStore();
+  const denied = await denyUnless(store, user, "manageAppearance");
+  if (denied) return { error: denied };
   await db.update(stores).set({ brand: {}, updatedAt: new Date() }).where(eq(stores.id, store.id));
   revalidateStore(store.subdomain);
 }
 
 export async function updateContentAction(_: FormState, formData: FormData): Promise<FormState> {
-  const { store } = await requireStore();
+  const { store, user } = await requireStore();
+  const denied = await denyUnless(store, user, "manageAppearance");
+  if (denied) return { error: denied };
   const str = (k: string, max = 600) => {
     const v = formData.get(k);
     return typeof v === "string" ? v.trim().slice(0, max) : "";
@@ -194,7 +203,9 @@ export async function updateContentAction(_: FormState, formData: FormData): Pro
 /* -------------------------------- settings --------------------------------- */
 
 export async function updateSettingsAction(_: FormState, formData: FormData): Promise<FormState> {
-  const { store } = await requireStore();
+  const { store, user } = await requireStore();
+  const denied = await denyUnless(store, user, "manageSettings");
+  if (denied) return { error: denied };
   const num = (k: string) => {
     const v = Number(formData.get(k));
     return Number.isFinite(v) && v >= 0 ? Math.round(v) : NaN;

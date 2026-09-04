@@ -8,6 +8,7 @@ import { db } from "@/db";
 import { products, type ProductFeature, type ProductOption } from "@/db/schema";
 import { requireStore } from "@/lib/auth";
 import { getPlan, upgradeCta } from "@/lib/plans";
+import { denyUnless } from "@/lib/team";
 import { uploadImage } from "@/lib/storage";
 import { slugify } from "@/lib/utils";
 import type { FormState } from "./auth";
@@ -81,7 +82,9 @@ async function uniqueSlug(storeId: string, base: string, excludeId?: string) {
 }
 
 export async function createProductAction(_: FormState, formData: FormData): Promise<FormState> {
-  const { store } = await requireStore();
+  const { store, user } = await requireStore();
+  const denied = await denyUnless(store, user, "manageProducts");
+  if (denied) return { error: denied };
   const parsed = productSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
@@ -105,7 +108,9 @@ export async function createProductAction(_: FormState, formData: FormData): Pro
 }
 
 export async function updateProductAction(productId: string, _: FormState, formData: FormData): Promise<FormState> {
-  const { store } = await requireStore();
+  const { store, user } = await requireStore();
+  const denied = await denyUnless(store, user, "manageProducts");
+  if (denied) return { error: denied };
   const existing = await db.query.products.findFirst({ where: and(eq(products.id, productId), eq(products.storeId, store.id)) });
   if (!existing) return { error: "Produit introuvable." };
   const parsed = productSchema.safeParse(Object.fromEntries(formData));
@@ -119,7 +124,9 @@ export async function updateProductAction(productId: string, _: FormState, formD
 }
 
 export async function deleteProductAction(productId: string) {
-  const { store } = await requireStore();
+  const { store, user } = await requireStore();
+  const denied = await denyUnless(store, user, "deleteProduct");
+  if (denied) return { error: denied };
   await db.delete(products).where(and(eq(products.id, productId), eq(products.storeId, store.id)));
   revalidatePath(`/${store.subdomain}`, "layout");
   revalidatePath("/dashboard/products");
@@ -127,7 +134,9 @@ export async function deleteProductAction(productId: string) {
 }
 
 export async function uploadImageAction(formData: FormData): Promise<{ url?: string; error?: string }> {
-  const { store } = await requireStore();
+  const { store, user } = await requireStore();
+  const denied = await denyUnless(store, user, "manageProducts");
+  if (denied) return { error: denied };
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) return { error: "Aucun fichier." };
   return uploadImage(file, store.id);

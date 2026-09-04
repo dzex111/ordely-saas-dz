@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { and, desc, eq, ilike, or } from "drizzle-orm";
-import { Search } from "lucide-react";
+import { Download, Search } from "lucide-react";
 import { db } from "@/db";
 import { orders, ORDER_STATUSES, type OrderStatus } from "@/db/schema";
 import { requireStore } from "@/lib/auth";
+import { hasFeature } from "@/lib/plans";
 import { STATUS_META } from "@/lib/commerce";
 import { wilayaByCode, formatPhone } from "@/lib/algeria";
 import { cn, formatDZD, formatDateTime } from "@/lib/utils";
@@ -22,7 +23,13 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
 
   return (
     <>
-      <PageHeader title="Commandes" description="Confirmez par téléphone, expédiez, encaissez à la livraison." />
+      <PageHeader title="Commandes" description="Confirmez par téléphone, expédiez, encaissez à la livraison." action={
+        hasFeature(store.plan, "csvExport") ? (
+          <a href="/api/dashboard/orders/export" className="db-btn-secondary">
+            <Download className="h-4 w-4" /> Export CSV
+          </a>
+        ) : undefined
+      } />
       <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-wrap gap-1.5">
           <Link href="/dashboard/orders" className={cn("rounded-full px-3 py-1.5 text-xs font-medium transition", !activeStatus ? "bg-zinc-900 text-white" : "bg-white text-zinc-600 ring-1 ring-zinc-200 hover:bg-zinc-50")}>Toutes</Link>

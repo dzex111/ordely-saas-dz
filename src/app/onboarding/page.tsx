@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation";
-import { getCurrentStore, requireUser } from "@/lib/auth";
+import { getOwnedStore, requireUser } from "@/lib/auth";
 import { OnboardingForm } from "@/components/dashboard/OnboardingForm";
 
 export const metadata = { title: "Créer votre boutique" };
 
 export default async function OnboardingPage() {
   const user = await requireUser();
-  if (await getCurrentStore()) redirect("/dashboard");
+  if (await getOwnedStore()) redirect("/dashboard");
   return (
     <div className="min-h-dvh bg-paper">
       <header className="border-b border-zinc-200 bg-white/70 backdrop-blur">

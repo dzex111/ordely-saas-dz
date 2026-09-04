@@ -1,15 +1,18 @@
 import { desc, eq, count } from "drizzle-orm";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { products, subscriptions } from "@/db/schema";
 import { requireStore } from "@/lib/auth";
+import { denyUnless } from "@/lib/team";
 import { getPlan } from "@/lib/plans";
 import { formatDate } from "@/lib/utils";
 import { PageHeader } from "@/components/dashboard/ui";
 import { PlanCards } from "@/components/dashboard/PlanCards";
 
 export default async function BillingPage() {
-  const { store } = await requireStore();
+  const { store, user } = await requireStore();
+  if (await denyUnless(store, user, "manageBilling")) redirect("/dashboard");
   const plan = getPlan(store.plan);
   const productLimit = plan.limits.productsPerStore;
   const [history, [{ n }]] = await Promise.all([

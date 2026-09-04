@@ -3,9 +3,11 @@ import { and, count, desc, eq, isNull } from "drizzle-orm";
 import { LogOut } from "lucide-react";
 import { db } from "@/db";
 import { notifications, orders, products, type NotificationType } from "@/db/schema";
-import { requireStore } from "@/lib/auth";
+import { requireStore, getAccessibleStores } from "@/lib/auth";
 import { logoutAction } from "@/lib/actions/auth";
 import { getPlan, upgradeCta } from "@/lib/plans";
+import { canDo } from "@/lib/team";
+import type { TeamAction } from "@/lib/team";
 import { storeUrl, timeAgo } from "@/lib/utils";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { DashboardSearch } from "@/components/dashboard/DashboardSearch";
@@ -22,8 +24,12 @@ const KIND: Record<NotificationType, BellItem["kind"]> = {
 };
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
-  const { user, store } = await requireStore();
+  const { user, store, role } = await requireStore();
   const plan = getPlan(store.plan);
+  const can = (a: TeamAction) => canDo(role, a);
+  const allowed: TeamAction[] = (["manageAppearance", "manageSettings", "manageBilling", "manageProducts", "manageOrders"] as const).filter(can);
+  const showTeam = role === "owner" && plan.flags.teamManagement;
+  const stores = (await getAccessibleStores()).map((s) => ({ id: s.id, name: s.name, subdomain: s.subdomain }));
   const [[{ value: pendingCount }], [{ value: productCount }], stored, [{ value: unread }]] = await Promise.all([
     db.select({ value: count() }).from(orders).where(and(eq(orders.storeId, store.id), eq(orders.status, "pending"))),
     db.select({ value: count() }).from(products).where(eq(products.storeId, store.id)),
@@ -48,7 +54,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     <div className="min-h-dvh bg-paper text-ink">
       <div className="mx-auto flex max-w-[1400px] flex-col md:flex-row">
         <div className="border-b border-zinc-200 md:sticky md:top-0 md:h-dvh md:border-b-0 md:border-r">
-          <Sidebar storeName={store.name} storeHref={storeUrl(store.subdomain)} pendingCount={pendingCount} plan={plan.name} />
+          <Sidebar storeName={store.name} storeHref={storeUrl(store.subdomain)} pendingCount={pendingCount} plan={plan.name} allowed={allowed} showTeam={showTeam} stores={stores} currentStoreId={store.id} />
         </div>
         <div className="min-w-0 flex-1">
           <header className="flex items-center gap-3 border-b border-zinc-200 bg-white/60 px-4 py-2.5 backdrop-blur md:px-6">
