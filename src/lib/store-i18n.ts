@@ -116,6 +116,18 @@ type Dict = {
   galleryPrev: string;
   galleryNext: string;
   galleryImage: (n: number) => string;
+  // server checkout errors
+  errPhone: string;
+  errWilaya: string;
+  errAddress: string;
+  errShopDown: string;
+  errNoProduct: string;
+  errEmpty: string;
+  errStockLeft: (n: number) => string;
+  errOptions: string;
+  errQtyMax: (n: number) => string;
+  errTooMany: string;
+  tyMeta: string;
   etaNorth: string;
   etaHighlands: string;
   etaSouth: string;
@@ -219,11 +231,22 @@ const fr: Dict = {
   fContact: "Contact",
   fAllProducts: "Tous les produits",
   fPowered: "Propulsé par",
-  privateBanner: "Boutique en mode privé — visible uniquement par vous. Publiez-la depuis Paramètres.",
+  privateBanner: "Mode privé — vous seul voyez cette boutique (les visiteurs voient une page introuvable).",
   gallerySoon: "Photos à venir",
   galleryPrev: "Précédente",
   galleryNext: "Suivante",
   galleryImage: (n) => `Image ${n}`,
+  errPhone: "Numéro invalide. Format attendu : 05, 06 ou 07 suivi de 8 chiffres.",
+  errWilaya: "Wilaya inconnue.",
+  errAddress: "Adresse de livraison requise pour la livraison à domicile.",
+  errShopDown: "Boutique indisponible.",
+  errNoProduct: "Ce produit n’est plus disponible.",
+  errEmpty: "Produit épuisé.",
+  errStockLeft: (n) => `Seulement ${n} en stock.`,
+  errOptions: "Choisissez toutes les options (taille, couleur…).",
+  errQtyMax: (n) => `Quantité maximale : ${n} par commande.`,
+  errTooMany: "Trop de commandes. Réessayez dans une heure.",
+  tyMeta: "Commande confirmée",
   etaNorth: "24–48h",
   etaHighlands: "48–72h",
   etaSouth: "3–5 jours",
@@ -327,11 +350,22 @@ const ar: Dict = {
   fContact: "اتصل بنا",
   fAllProducts: "كل المنتجات",
   fPowered: "بدعم من",
-  privateBanner: "المتجر في الوضع الخاص — ظاهر لك فقط. انشره من الإعدادات.",
+  privateBanner: "الوضع الخاص — أنت فقط ترى المتجر (الزوار يرون صفحة غير موجودة).",
   gallerySoon: "الصور قريباً",
   galleryPrev: "السابق",
   galleryNext: "التالي",
   galleryImage: (n) => `صورة ${n}`,
+  errPhone: "رقم غير صالح. الصيغة: 05 أو 06 أو 07 + 8 أرقام.",
+  errWilaya: "ولاية غير معروفة.",
+  errAddress: "عنوان التوصيل مطلوب للتوصيل المنزلي.",
+  errShopDown: "المتجر غير متوفر.",
+  errNoProduct: "هذا المنتج لم يعد متوفراً.",
+  errEmpty: "نفدت الكمية.",
+  errStockLeft: (n) => `المتبقي ${n} فقط.`,
+  errOptions: "اختر كل الخيارات (المقاس، اللون…).",
+  errQtyMax: (n) => `الكمية القصوى: ${n} للطلب الواحد.`,
+  errTooMany: "طلبات كثيرة. حاول بعد ساعة.",
+  tyMeta: "تم استلام طلبك",
   etaNorth: "24–48 ساعة",
   etaHighlands: "48–72 ساعة",
   etaSouth: "3–5 أيام",

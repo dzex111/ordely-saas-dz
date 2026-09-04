@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { and, eq } from "drizzle-orm";
 import { CheckCircle2, PhoneCall, Truck, Banknote } from "lucide-react";
@@ -10,7 +11,13 @@ import { wilayaByCode, formatPhone } from "@/lib/algeria";
 import { formatDZD } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Commande confirmée", robots: { index: false } };
+
+export async function generateMetadata({ params }: { params: Promise<{ store: string }> }): Promise<Metadata> {
+  const { store: sub } = await params;
+  const ctx = await getStoreCtx(sub).catch(() => null);
+  const lang = ctx ? storeLangOf(ctx.store.settings.language) : "fr";
+  return { title: st(lang).tyMeta, robots: { index: false } };
+}
 
 export default async function ThankYou({ params }: { params: Promise<{ store: string; orderId: string }> }) {
   const { store: sub, orderId } = await params;

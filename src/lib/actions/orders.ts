@@ -8,6 +8,7 @@ import { db } from "@/db";
 import { customers, orderEvents, orders, products, stores, ORDER_STATUSES, type OrderStatus } from "@/db/schema";
 import { requireStore } from "@/lib/auth";
 import { clientIp } from "@/lib/rate-limit";
+import { st, storeLangOf } from "@/lib/store-i18n";
 import { normalizePhone, wilayaByCode } from "@/lib/algeria";
 import { computeDeliveryFee, ORDER_TRANSITIONS } from "@/lib/commerce";
 import type { FormState } from "./auth";
@@ -35,18 +36,19 @@ export async function placeOrderAction(_: FormState, formData: FormData): Promis
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const d = parsed.data;
 
-  const phone = normalizePhone(d.phone);
-  if (!phone) return { error: "Numéro invalide. Format attendu : 05, 06 ou 07 suivi de 8 chiffres." };
-  const wilaya = wilayaByCode(d.wilaya);
-  if (!wilaya) return { error: "Wilaya inconnue." };
-  if (d.deliveryType === "home" && d.address.length < 5) return { error: "Adresse de livraison requise pour la livraison à domicile." };
-
   const store = await db.query.stores.findFirst({ where: eq(stores.id, d.storeId) });
-  if (!store || !store.published || store.suspended) return { error: "Boutique indisponible." };
+  const t = st(storeLangOf(store?.settings.language));
+  if (!store || !store.published || store.suspended) return { error: t.errShopDown };
+
+  const phone = normalizePhone(d.phone);
+  if (!phone) return { error: t.errPhone };
+  const wilaya = wilayaByCode(d.wilaya);
+  if (!wilaya) return { error: t.errWilaya };
+  if (d.deliveryType === "home" && d.address.length < 5) return { error: t.errAddress };
 
   // Merchant-configured cap: max units of one product per order (anti bulk-fake orders).
   const qtyCap = Math.min(20, store.settings.maxQtyPerOrder ?? 5);
-  if (d.qty > qtyCap) return { error: `Quantité maximale : ${qtyCap} par commande.` };
+  if (d.qty > qtyCap) return { error: t.errQtyMax(qtyCap) };
 
   // 5 orders / hour / IP / store — blocks fake-order floods against merchants.
   const ip = await clientIp();
@@ -56,20 +58,20 @@ export async function placeOrderAction(_: FormState, formData: FormData): Promis
     columns: { id: true },
     limit: 5,
   });
-  if (recentOrders.length >= 5) return { error: "Trop de commandes. Réessayez dans une heure." };
+  if (recentOrders.length >= 5) return { error: t.errTooMany };
   const product = await db.query.products.findFirst({
     where: and(eq(products.id, d.productId), eq(products.storeId, store.id), eq(products.status, "active")),
   });
-  if (!product) return { error: "Ce produit n’est plus disponible." };
+  if (!product) return { error: t.errNoProduct };
   if (product.stock !== null && product.stock < d.qty) {
-    return { error: product.stock === 0 ? "Produit épuisé." : `Seulement ${product.stock} en stock.` };
+    return { error: product.stock === 0 ? t.errEmpty : t.errStockLeft(product.stock) };
   }
   if (product.options.length > 0) {
     const parts = d.variant ? d.variant.split(" / ") : [];
     const valid =
       parts.length === product.options.length &&
       product.options.every((opt, i) => opt.values.includes(parts[i] ?? ""));
-    if (!valid) return { error: "Choisissez toutes les options (taille, couleur…)." };
+    if (!valid) return { error: t.errOptions };
   }
 
   const subtotal = product.price * d.qty;
