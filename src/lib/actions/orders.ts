@@ -106,6 +106,7 @@ export async function placeOrderAction(_: FormState, formData: FormData): Promis
   if (dup) redirect(`/${store.subdomain}/merci/${dup.id}`);
 
   let orderId: string | null = null;
+  let remainingStock: number | null = null;
   try {
     orderId = await db.transaction(async (tx) => {
       const [{ seq }] = await tx
@@ -155,7 +156,12 @@ export async function placeOrderAction(_: FormState, formData: FormData): Promis
 
       await tx.insert(orderEvents).values({ orderId: order.id, fromStatus: null, toStatus: "pending", note: "Commande reçue depuis la boutique." });
       if (product.stock !== null) {
-        await tx.update(products).set({ stock: sql`GREATEST(${products.stock} - ${d.qty}, 0)` }).where(eq(products.id, product.id));
+        const [row] = await tx
+          .update(products)
+          .set({ stock: sql`GREATEST(${products.stock} - ${d.qty}, 0)` })
+          .where(eq(products.id, product.id))
+          .returning({ stock: products.stock });
+        remainingStock = row?.stock ?? null;
       }
       return order.id;
     });
@@ -185,6 +191,18 @@ export async function placeOrderAction(_: FormState, formData: FormData): Promis
     body: `${formatDZD(total)} · ${phone}`,
     link: `/dashboard/orders/${orderId}`,
   });
+  // Low-stock bell — only on the crossing into the threshold (never spammy):
+  // an already-low product keeps quiet until the merchant restocks.
+  const LOW_STOCK_THRESHOLD = 3;
+  if (remainingStock !== null && remainingStock <= LOW_STOCK_THRESHOLD && (product.stock ?? 0) > LOW_STOCK_THRESHOLD) {
+    await pushNotification({
+      storeId: store.id,
+      type: "low_stock",
+      title: remainingStock === 0 ? `Rupture de stock — ${product.name}` : `Stock faible — ${product.name}`,
+      body: remainingStock === 0 ? "Plus aucune unité disponible à la vente." : `${remainingStock} unité(s) restante(s).`,
+      link: "/dashboard/products",
+    });
+  }
   redirect(`/${store.subdomain}/merci/${orderId}`);
 }
 

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { LayoutDashboard, ShoppingBag, Package, Users, Palette, Settings, CreditCard, ExternalLink, UsersRound, Check, ChevronDown, Plus, Store as StoreIcon, ChartColumn } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, Package, Users, Palette, Settings, CreditCard, ExternalLink, UsersRound, Check, ChevronDown, Plus, Store as StoreIcon, ChartColumn, TicketPercent } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { setActiveStoreAction } from "@/lib/actions/team";
 import type { TeamAction } from "@/lib/team";
@@ -13,6 +13,7 @@ const NAV: { href: string; label: string; icon: typeof LayoutDashboard; exact?: 
   { href: "/dashboard/orders", label: "Commandes", icon: ShoppingBag },
   { href: "/dashboard/products", label: "Produits", icon: Package },
   { href: "/dashboard/customers", label: "Clients", icon: Users },
+  { href: "/dashboard/coupons", label: "Promos", icon: TicketPercent, need: "manageProducts" },
   { href: "/dashboard/analytics", label: "Analytique", icon: ChartColumn, need: "analytics" },
   { href: "/dashboard/customize", label: "Apparence", icon: Palette, need: "manageAppearance" },
   { href: "/dashboard/team", label: "Équipe", icon: UsersRound, need: "team" },

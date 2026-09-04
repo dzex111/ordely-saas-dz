@@ -242,6 +242,8 @@ export const orders = pgTable(
     subtotal: integer("subtotal").notNull(),
     deliveryFee: integer("delivery_fee").notNull(),
     total: integer("total").notNull(),
+    discount: integer("discount").notNull().default(0), // coupon DZD off subtotal
+    couponCode: text("coupon_code"),
     status: text("status").$type<OrderStatus>().notNull().default("pending"),
     ip: text("ip"), // abuse rate-limiting (orders per IP per store)
     customerNote: text("customer_note").notNull().default(""),
@@ -341,7 +343,7 @@ export type ContactRequest = typeof contactRequests.$inferSelect;
 /*  Notifications (merchant inbox: new orders, plan changes, restrictions)      */
 /* -------------------------------------------------------------------------- */
 
-export const NOTIFICATION_TYPES = ["new_order", "plan_changed", "suspended", "unsuspended", "limit_warning"] as const;
+export const NOTIFICATION_TYPES = ["new_order", "low_stock", "plan_changed", "suspended", "unsuspended", "limit_warning"] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
 export const notifications = pgTable(
@@ -434,6 +436,58 @@ export const shipments = pgTable(
 
 export type ShippingCredential = typeof shippingCredentials.$inferSelect;
 export type Shipment = typeof shipments.$inferSelect;
+
+/* -------------------------------------------------------------------------- */
+/*  Coupons (simple, real: percent/fixed + optional time window + usage cap)    */
+/* -------------------------------------------------------------------------- */
+
+export const coupons = pgTable(
+  "coupons",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    code: text("code").notNull(),
+    type: text("type").notNull().default("percent"), // percent | fixed
+    value: integer("value").notNull(), // percent 1-90 or fixed DZD
+    minSubtotal: integer("min_subtotal").notNull().default(0),
+    maxUses: integer("max_uses"), // null = unlimited
+    usedCount: integer("used_count").notNull().default(0),
+    startsAt: timestamp("starts_at", { withTimezone: true }),
+    endsAt: timestamp("ends_at", { withTimezone: true }),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("coupons_store_code_idx").on(t.storeId, t.code), index("coupons_store_idx").on(t.storeId)],
+);
+
+export type Coupon = typeof coupons.$inferSelect;
+
+/* -------------------------------------------------------------------------- */
+/*  Email log (quota guard: few, non-spammy Brevo sends) + tiny app key-value   */
+/* -------------------------------------------------------------------------- */
+
+export const emailLogs = pgTable(
+  "email_logs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id").references(() => stores.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(), // pending_digest | welcome | ...
+    recipient: text("recipient").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("email_logs_kind_created_idx").on(t.kind, t.createdAt)],
+);
+
+export const appState = pgTable(
+  "app_state",
+  {
+    key: text("key").primaryKey(),
+    value: text("value").notNull().default(""),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+);
 
 /* -------------------------------------------------------------------------- */
 /*  Team (PRO: 3 seats, BUSINESS: 10 — Starter is owner-only, UI hidden)        */

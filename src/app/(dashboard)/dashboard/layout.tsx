@@ -21,6 +21,7 @@ const KIND: Record<NotificationType, BellItem["kind"]> = {
   unsuspended: "info",
   suspended: "alert",
   limit_warning: "warn",
+  low_stock: "warn",
 };
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {

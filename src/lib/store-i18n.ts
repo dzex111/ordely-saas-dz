@@ -81,6 +81,12 @@ type Dict = {
   coEverywhere: string;
   coPayDriver: string;
   coMaxPerOrder: (n: number) => string;
+  coCoupon: string;
+  coCouponPh: string;
+  coApply: string;
+  coCouponBad: string;
+  coDiscount: string;
+  coCouponOn: (code: string) => string;
   // thank-you
   tyOrderNo: string;
   tyThanks: (name: string) => string;
@@ -205,6 +211,12 @@ const fr: Dict = {
   coEverywhere: "Livraison partout en Algérie. ",
   coPayDriver: "Vous payez le livreur à la réception. Confirmation par téléphone.",
   coMaxPerOrder: (n) => `Max ${n} / commande`,
+  coCoupon: "Code promo",
+  coCouponPh: "WELCOME10",
+  coApply: "Appliquer",
+  coCouponBad: "Code invalide.",
+  coDiscount: "Remise",
+  coCouponOn: (code) => `Code ${code} appliqué`,
   tyOrderNo: "Commande n°",
   tyThanks: (name) => `Merci, ${name} !`,
   tyReceived1: "Votre commande est bien reçue. Nous vous appelons au",
@@ -325,6 +337,12 @@ const ar: Dict = {
   coEverywhere: "التوصيل لكل الجزائر. ",
   coPayDriver: "تدفع للموصّل عند الاستلام. تأكيد عبر الهاتف.",
   coMaxPerOrder: (n) => `الحد الأقصى ${n} / طلب`,
+  coCoupon: "كود الخصم",
+  coCouponPh: "WELCOME10",
+  coApply: "تطبيق",
+  coCouponBad: "كود غير صالح.",
+  coDiscount: "خصم",
+  coCouponOn: (code) => `تم تطبيق ${code}`,
   tyOrderNo: "طلب رقم",
   tyThanks: (name) => `شكراً ${name}!`,
   tyReceived1: "تم استلام طلبك. سنتصل بك على",

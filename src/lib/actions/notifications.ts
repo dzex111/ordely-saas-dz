@@ -9,7 +9,7 @@ import { requireStore } from "@/lib/auth";
 /** Insert a merchant notification. Best-effort — failures never break the caller. */
 export async function pushNotification(input: {
   storeId: string;
-  type: "new_order" | "plan_changed" | "suspended" | "unsuspended" | "limit_warning";
+  type: "new_order" | "low_stock" | "plan_changed" | "suspended" | "unsuspended" | "limit_warning";
   title: string;
   body?: string;
   link?: string;
