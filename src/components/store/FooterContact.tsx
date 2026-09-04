@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Loader2, Send } from "lucide-react";
 import { createContactRequestAction } from "@/lib/actions/contact";
 import { Turnstile } from "@/components/ui/Turnstile";
@@ -8,6 +8,8 @@ import { Turnstile } from "@/components/ui/Turnstile";
 /** Lightweight footer contact block — same identity, posts to the admin inbox. */
 export function FooterContact() {
   const [state, action, pending] = useActionState(createContactRequestAction, null);
+  const turnstileOn = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  const [human, setHuman] = useState(!turnstileOn);
   return (
     <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm md:p-8">
       <form action={action} className="grid gap-3 md:grid-cols-[1fr_1fr_1.4fr_auto] md:items-end">
@@ -26,8 +28,8 @@ export function FooterContact() {
         <input type="hidden" name="plan" value="growth" />
         <input type="hidden" name="source" value="contact" />
         <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden className="hidden" />
-        <Turnstile />
-        <button type="submit" disabled={pending} className="db-btn !px-5 !py-2.5" aria-label="Envoyer">
+        <Turnstile onVerify={setHuman} />
+        <button type="submit" disabled={pending || !human} className="db-btn !px-5 !py-2.5" aria-label="Envoyer">
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           <span className="md:hidden">Envoyer</span>
         </button>

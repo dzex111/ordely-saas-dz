@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { loginAction, signupAction } from "@/lib/actions/auth";
@@ -8,6 +8,8 @@ import { Turnstile } from "@/components/ui/Turnstile";
 
 export function AuthForm({ mode, next }: { mode: "login" | "signup"; next?: string }) {
   const [state, action, pending] = useActionState(mode === "login" ? loginAction : signupAction, null);
+  const turnstileOn = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  const [human, setHuman] = useState(!turnstileOn);
   return (
     <form action={action} className="space-y-4">
       {next && <input type="hidden" name="next" value={next} />}
@@ -28,8 +30,8 @@ export function AuthForm({ mode, next }: { mode: "login" | "signup"; next?: stri
       {state?.error && <p role="alert" className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{state.error}</p>}
       {state?.info && <p className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-800">{state.info}</p>}
       <input type="text" name="company" tabIndex={-1} autoComplete="off" aria-hidden className="hidden" />
-      <Turnstile />
-      <button type="submit" disabled={pending} className="db-btn w-full !py-2.5">
+      <Turnstile onVerify={setHuman} />
+      <button type="submit" disabled={pending || !human} className="db-btn w-full !py-2.5" title={!human ? "Attendez la vérification anti-robot…" : undefined}>
         {pending && <Loader2 className="h-4 w-4 animate-spin" />}
         {mode === "login" ? "Se connecter" : "Créer mon compte"}
       </button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { createContactRequestAction } from "@/lib/actions/contact";
 import { Turnstile } from "@/components/ui/Turnstile";
@@ -8,6 +8,8 @@ import { PLANS } from "@/lib/plans";
 
 export function ContactForm({ defaultPlan, source }: { defaultPlan: string; source: "plan" | "contact" }) {
   const [state, action, pending] = useActionState(createContactRequestAction, null);
+  const turnstileOn = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  const [human, setHuman] = useState(!turnstileOn);
   return (
     <form action={action} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
@@ -36,8 +38,8 @@ export function ContactForm({ defaultPlan, source }: { defaultPlan: string; sour
       {state?.success && <p role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{state.success}</p>}
       <input type="hidden" name="source" value={source} />
       <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden className="hidden" />
-      <Turnstile />
-      <button type="submit" disabled={pending} className="db-btn w-full !py-2.5">
+      <Turnstile onVerify={setHuman} />
+      <button type="submit" disabled={pending || !human} className="db-btn w-full !py-2.5">
         {pending && <Loader2 className="h-4 w-4 animate-spin" />}
         Envoyer la demande
       </button>
