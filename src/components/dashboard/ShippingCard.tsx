@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, PackagePlus, Printer, RefreshCw, Truck, XCircle } from "lucide-react";
@@ -41,7 +42,7 @@ export function ShippingCard({ orderId, shipment, creds }: { orderId: string; sh
       {!shipment ? (
         creds.length === 0 ? (
           <p className="mt-3 text-xs leading-relaxed text-zinc-500">
-            Connectez un transporteur depuis <a href="/dashboard/settings" className="font-medium text-zinc-900 underline underline-offset-2">Paramètres → Expédition</a>, puis créez l’expédition en un clic.
+            Connectez un transporteur depuis <Link href="/dashboard/settings" className="font-medium text-zinc-900 underline underline-offset-2">Paramètres → Expédition</Link>, puis créez l’expédition en un clic.
           </p>
         ) : (
           <form

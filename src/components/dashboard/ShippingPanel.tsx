@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Loader2, Trash2, Truck, XCircle } from "lucide-react";
@@ -32,7 +33,7 @@ export function ShippingPanel({ creds, canUse }: { creds: CredRow[]; canUse: boo
         <p className="mt-2 text-xs leading-relaxed text-zinc-500">
           Connectez Yalidine, ZR ou un transporteur EcoTrack (DHD, Conexlog…) et créez vos expéditions depuis chaque commande.
         </p>
-        <a href="/dashboard/billing" className="db-btn-secondary mt-3 w-full !py-2 text-xs">Disponible sur PRO</a>
+        <Link href="/dashboard/billing" className="db-btn-secondary mt-3 w-full !py-2 text-xs">Disponible sur PRO</Link>
       </div>
     );
   }
