@@ -64,7 +64,7 @@ export function DashboardSearch() {
         className="db-input !pl-9"
       />
       {open && (loading || res) && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xl">
+        <div className="absolute left-0 right-0 top-full z-[250] mt-2 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xl">
           {loading && !res ? (
             <p className="flex items-center gap-2 px-4 py-3 text-sm text-zinc-500"><Loader2 className="h-4 w-4 animate-spin" /> Recherche…</p>
           ) : empty ? (
