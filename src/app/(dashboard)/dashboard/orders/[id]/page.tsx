@@ -65,8 +65,14 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
                 </li>
               ))}
             </ul>
-            <div className="space-y-1 border-t border-zinc-100 bg-zinc-50/60 px-5 py-4 text-sm">
+                        <div className="space-y-1 border-t border-zinc-100 bg-zinc-50/60 px-5 py-4 text-sm">
               <div className="flex justify-between text-zinc-600"><span>Sous-total</span><span>{formatDZD(order.subtotal)}</span></div>
+              {order.discount > 0 && (
+                <div className="flex justify-between text-emerald-700">
+                  <span>Code promo{order.couponCode ? ` (${order.couponCode})` : ""}</span>
+                  <span>−{formatDZD(order.discount)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-zinc-600"><span>Livraison · {order.deliveryType === "home" ? "domicile" : "point relais"}</span><span>{formatDZD(order.deliveryFee)}</span></div>
               <div className="flex justify-between pt-1 text-base font-semibold"><span>À encaisser</span><span>{formatDZD(order.total)}</span></div>
             </div>

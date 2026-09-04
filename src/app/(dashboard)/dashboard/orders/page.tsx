@@ -86,7 +86,12 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                   <td className="hidden px-4 py-3 text-zinc-600 lg:table-cell">{wilayaByCode(o.wilayaCode)?.name}</td>
                   <td className="px-4 py-3"><StatusBadge status={o.status} /></td>
                   <td className="hidden px-4 py-3 lg:table-cell">{risks.get(o.id) && <RiskBadge risk={risks.get(o.id)!} />}</td>
-                  <td className="px-4 py-3 text-right font-semibold tabular-nums">{formatDZD(o.total)}</td>
+                                  <td className="px-4 py-3 text-right font-semibold tabular-nums">
+                  {formatDZD(o.total)}
+                  {o.discount > 0 && (
+                    <span className="block text-[10px] font-normal text-emerald-700">−{formatDZD(o.discount)} promo</span>
+                  )}
+                </td>
                   <td className="hidden px-4 py-3 text-right text-xs text-zinc-500 md:table-cell">{formatDateTime(o.createdAt)}</td>
                 </tr>
               ))}
