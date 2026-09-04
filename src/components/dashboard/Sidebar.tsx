@@ -3,16 +3,17 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { LayoutDashboard, ShoppingBag, Package, Users, Palette, Settings, CreditCard, ExternalLink, UsersRound, Check, ChevronDown, Plus, Store as StoreIcon } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, Package, Users, Palette, Settings, CreditCard, ExternalLink, UsersRound, Check, ChevronDown, Plus, Store as StoreIcon, ChartColumn } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { setActiveStoreAction } from "@/lib/actions/team";
 import type { TeamAction } from "@/lib/team";
 
-const NAV: { href: string; label: string; icon: typeof LayoutDashboard; exact?: boolean; need?: TeamAction | "team" }[] = [
+const NAV: { href: string; label: string; icon: typeof LayoutDashboard; exact?: boolean; need?: TeamAction | "team" | "analytics" }[] = [
   { href: "/dashboard", label: "Vue d’ensemble", icon: LayoutDashboard, exact: true },
   { href: "/dashboard/orders", label: "Commandes", icon: ShoppingBag },
   { href: "/dashboard/products", label: "Produits", icon: Package },
   { href: "/dashboard/customers", label: "Clients", icon: Users },
+  { href: "/dashboard/analytics", label: "Analytique", icon: ChartColumn, need: "analytics" },
   { href: "/dashboard/customize", label: "Apparence", icon: Palette, need: "manageAppearance" },
   { href: "/dashboard/team", label: "Équipe", icon: UsersRound, need: "team" },
   { href: "/dashboard/settings", label: "Paramètres", icon: Settings, need: "manageSettings" },
@@ -28,6 +29,7 @@ export function Sidebar({
   plan,
   allowed,
   showTeam,
+  showAnalytics,
   showCreateStore,
   stores,
   currentStoreId,
@@ -38,6 +40,7 @@ export function Sidebar({
   plan: string;
   allowed: TeamAction[];
   showTeam: boolean;
+  showAnalytics: boolean;
   showCreateStore: boolean;
   stores: SidebarStore[];
   currentStoreId: string;
@@ -47,7 +50,7 @@ export function Sidebar({
   const [switching, startSwitch] = useTransition();
   const [pickerOpen, setPickerOpen] = useState(false);
   const picker = useRef<HTMLDivElement>(null);
-  const visible = NAV.filter((n) => !n.need || (n.need === "team" ? showTeam : allowed.includes(n.need)));
+  const visible = NAV.filter((n) => !n.need || (n.need === "team" ? showTeam : n.need === "analytics" ? showAnalytics : allowed.includes(n.need)));
   const current = stores.find((s) => s.id === currentStoreId);
 
   useEffect(() => {

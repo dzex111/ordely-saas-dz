@@ -57,7 +57,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     <div className="min-h-dvh bg-paper text-ink">
       <div className="mx-auto flex max-w-[1400px] flex-col md:flex-row">
         <div className="border-b border-zinc-200 md:sticky md:top-0 md:h-dvh md:border-b-0 md:border-r">
-          <Sidebar storeName={store.name} storeHref={storeUrl(store.subdomain)} pendingCount={pendingCount} plan={plan.name} allowed={allowed} showTeam={showTeam} showCreateStore={showCreateStore} stores={stores} currentStoreId={store.id} />
+          <Sidebar storeName={store.name} storeHref={storeUrl(store.subdomain)} pendingCount={pendingCount} plan={plan.name} allowed={allowed} showTeam={showTeam} showAnalytics={plan.flags.advancedAnalytics} showCreateStore={showCreateStore} stores={stores} currentStoreId={store.id} />
         </div>
         <div className="min-w-0 flex-1">
           <header className="flex items-center gap-3 border-b border-zinc-200 bg-white/60 px-4 py-2.5 backdrop-blur md:px-6">
