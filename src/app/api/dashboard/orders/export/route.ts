@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
-import { desc, eq } from "drizzle-orm";
+import { NextRequest, NextResponse } from "next/server";
+import { and, desc, eq, ilike, or } from "drizzle-orm";
 import { db } from "@/db";
-import { orders } from "@/db/schema";
+import { orders, ORDER_STATUSES, type OrderStatus } from "@/db/schema";
 import { requireStore } from "@/lib/auth";
 import { hasFeature } from "@/lib/plans";
 import { denyUnless } from "@/lib/team";
@@ -13,8 +13,8 @@ const cell = (v: unknown) => {
   return /[;"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 
-/** CSV export of all store orders (PRO+ feature, server-enforced). */
-export async function GET() {
+/** CSV export — respects the dashboard filters (?status=&q=). PRO+ feature, server-enforced. */
+export async function GET(req: NextRequest) {
   let ctx;
   try {
     ctx = await requireStore();
@@ -28,8 +28,16 @@ export async function GET() {
   if (await denyUnless(store, user, "manageOrders")) {
     return NextResponse.json({ ok: false }, { status: 403 });
   }
+  const sp = req.nextUrl.searchParams;
+  const rawStatus = sp.get("status") ?? "";
+  const status = (ORDER_STATUSES as readonly string[]).includes(rawStatus) ? (rawStatus as OrderStatus) : null;
+  const q = (sp.get("q") ?? "").trim().slice(0, 60);
   const rows = await db.query.orders.findMany({
-    where: eq(orders.storeId, store.id),
+    where: and(
+      eq(orders.storeId, store.id),
+      status ? eq(orders.status, status) : undefined,
+      q ? or(ilike(orders.customerName, `%${q}%`), ilike(orders.customerPhone, `%${q.replace(/\s/g, "")}%`)) : undefined,
+    ),
     orderBy: [desc(orders.createdAt)],
     limit: 5000,
   });
@@ -54,10 +62,11 @@ export async function GET() {
       .join(";"),
   );
   const csv = "﻿" + [header.join(";"), ...lines].join("\n");
+  const suffix = status ? `-${status}` : "";
   return new NextResponse(csv, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="ordely-commandes-${store.subdomain}.csv"`,
+      "Content-Disposition": `attachment; filename="ordely-commandes-${store.subdomain}${suffix}.csv"`,
     },
   });
 }

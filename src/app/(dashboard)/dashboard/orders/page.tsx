@@ -25,9 +25,19 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
     <>
       <PageHeader title="Commandes" description="Confirmez par téléphone, expédiez, encaissez à la livraison." action={
         hasFeature(store.plan, "csvExport") ? (
-          <a href="/api/dashboard/orders/export" className="db-btn-secondary">
-            <Download className="h-4 w-4" /> Export CSV
-          </a>
+          <span className="flex flex-col items-end gap-1">
+            <a
+              href={`/api/dashboard/orders/export${activeStatus || q ? `?${new URLSearchParams({ ...(activeStatus ? { status: activeStatus } : {}), ...(q ? { q } : {}) })}` : ""}`}
+              className="db-btn-secondary"
+            >
+              <Download className="h-4 w-4" /> Export CSV
+            </a>
+            <span className="text-[11px] text-zinc-400">
+              {!activeStatus && !q
+                ? "Télécharge toutes les commandes."
+                : `Télécharge : ${activeStatus ? `« ${STATUS_META[activeStatus].label} »` : "toutes"}${q ? ` · recherche « ${q} »` : ""}.`}
+            </span>
+          </span>
         ) : undefined
       } />
       <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
