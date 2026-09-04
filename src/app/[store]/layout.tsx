@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { getStoreBySubdomain } from "@/lib/store-data";
 import { getStoreCtx } from "@/lib/store-ctx";
+import { getCurrentUser } from "@/lib/auth";
 import { Announcement, Footer, Header } from "@/components/store/sections";
 
 type Props = { children: ReactNode; params: Promise<{ store: string }> };
@@ -25,6 +26,11 @@ export default async function StoreLayout({ children, params }: Props) {
   if (!ctx) notFound();
   const { store, theme, base } = ctx;
   if (store.suspended) notFound();
+  // Unpublished = private: only the owner can preview it, visitors get 404.
+  if (!store.published) {
+    const user = await getCurrentUser();
+    if (!user || user.id !== store.ownerId) notFound();
+  }
   const dark = isDark(theme.cssVars["--bg"]);
   return (
     <div className={dark ? "sf dark" : "sf"} style={theme.cssVars as React.CSSProperties} lang={store.settings.language}>
