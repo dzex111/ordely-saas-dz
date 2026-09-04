@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Check, Smartphone, Truck, Palette, ShieldCheck, BarChart3, Globe2 } from "lucide-react";
+import { ArrowRight, Check, Smartphone, Truck, Palette, ShieldCheck, BarChart3, Globe2, Mail, MessageCircle } from "lucide-react";
 import { db } from "@/db";
 import { stores, users } from "@/db/schema";
 import { asc, eq, like } from "drizzle-orm";
@@ -9,6 +9,7 @@ import { PLANS } from "@/lib/plans";
 import { formatDZD } from "@/lib/utils";
 import { TemplateGrid } from "@/components/store/TemplateGrid";
 import { FooterContact } from "@/components/store/FooterContact";
+import { SUPPORT_EMAIL, SUPPORT_MAILTO, SUPPORT_WHATSAPP_DISPLAY, SUPPORT_WHATSAPP_URL } from "@/lib/site-contact";
 
 export const dynamic = "force-dynamic";
 
@@ -145,6 +146,15 @@ export default async function Landing() {
           <p className="text-xs font-semibold uppercase tracking-widest text-brand">Contact</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">Une question ? Écrivez-nous.</h2>
           <p className="mt-3 text-zinc-600">Changement de plan, domaine personnalisé, accompagnement — l’admin vous répond directement.</p>
+          <div className="mt-5 flex flex-wrap gap-2.5">
+            <a href={SUPPORT_MAILTO} className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium transition hover:bg-zinc-50">
+              <Mail className="h-4 w-4 text-zinc-500" /> {SUPPORT_EMAIL}
+            </a>
+            <a href={SUPPORT_WHATSAPP_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium transition hover:bg-zinc-50">
+              <MessageCircle className="h-4 w-4 text-emerald-600" /> {SUPPORT_WHATSAPP_DISPLAY}
+              <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-700">WhatsApp uniquement</span>
+            </a>
+          </div>
         </div>
         <FooterContact />
       </section>

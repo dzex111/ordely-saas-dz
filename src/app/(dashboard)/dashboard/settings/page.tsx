@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireStore } from "@/lib/auth";
 import { isSupabaseConfigured, isSupabaseStorageConfigured } from "@/lib/supabase";
 import { PageHeader } from "@/components/dashboard/ui";
@@ -32,7 +33,7 @@ export default async function SettingsPage() {
           </div>
           <div className="db-card p-5 text-sm">
             <p className="font-semibold">Domaine personnalisé</p>
-            <p className="mt-2 text-xs leading-relaxed text-zinc-500">Disponible sur Growth. Pointez un CNAME vers <code>{process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "ordely.app"}</code> puis contactez le support pour l’activation SSL.</p>
+            <p className="mt-2 text-xs leading-relaxed text-zinc-500">Disponible sur Growth. Pointez un CNAME vers <code>{process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "ordely.app"}</code> puis <Link href="/contact" className="font-medium text-zinc-900 underline underline-offset-2">contactez le support</Link> pour l’activation SSL.</p>
           </div>
         </div>
       </div>
