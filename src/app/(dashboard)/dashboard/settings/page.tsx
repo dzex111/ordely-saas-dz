@@ -2,10 +2,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireStore } from "@/lib/auth";
 import { denyUnless } from "@/lib/team";
+import { hasFeature } from "@/lib/plans";
 import { isSupabaseConfigured, isSupabaseStorageConfigured } from "@/lib/supabase";
 import { PageHeader } from "@/components/dashboard/ui";
 import { SettingsForm } from "@/components/dashboard/SettingsForm";
 import { StoreIdBox } from "@/components/dashboard/StoreIdBox";
+import { CustomDomainPanel } from "@/components/dashboard/CustomDomainPanel";
 
 export default async function SettingsPage() {
   const { store, user } = await requireStore();
@@ -25,6 +27,7 @@ export default async function SettingsPage() {
         <div className="lg:col-span-2"><SettingsForm key={store.updatedAt.toISOString()} store={store} /></div>
         <div className="space-y-4">
           {store.publicId && <StoreIdBox publicId={store.publicId} />}
+          <CustomDomainPanel domain={store.customDomain} status={store.customDomainStatus} canUse={hasFeature(store.plan, "customDomain")} />
           <div className="db-card p-5 text-sm">
             <p className="font-semibold">Infrastructure</p>
             <ul className="mt-3 space-y-2 text-xs text-zinc-600">

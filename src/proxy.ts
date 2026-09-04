@@ -20,9 +20,51 @@ function extractSubdomain(hostHeader: string | null): string | null {
   return null;
 }
 
+function isPlatformHost(hostHeader: string | null): boolean {
+  if (!hostHeader) return true;
+  const host = hostHeader.split(":")[0].toLowerCase();
+  return (
+    host === ROOT ||
+    host === `www.${ROOT}` ||
+    host.endsWith(`.${ROOT}`) ||
+    host.endsWith(".vercel.app") ||
+    /^\d+\.\d+\.\d+\.\d+$/.test(host) ||
+    host === "localhost"
+  );
+}
+
+/* Merchant custom domains → subdomain via a minimal locked-down RPC (60s cache). */
+const domainCache = new Map<string, { sub: string | null; at: number }>();
+
+async function resolveCustomDomain(hostHeader: string | null): Promise<string | null> {
+  if (!hostHeader || !SUPABASE_URL || !SUPABASE_ANON) return null;
+  const host = hostHeader.split(":")[0].toLowerCase();
+  const hit = domainCache.get(host);
+  if (hit && Date.now() - hit.at < 60_000) return hit.sub;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/resolve_store_domain`, {
+      method: "POST",
+      headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ hostname: host }),
+    });
+    const sub = (await res.json().catch(() => null)) as string | null;
+    const clean = typeof sub === "string" && /^[a-z0-9-]{1,40}$/.test(sub) ? sub : null;
+    domainCache.set(host, { sub: clean, at: Date.now() });
+    return clean;
+  } catch {
+    return hit?.sub ?? null;
+  }
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const sub = extractSubdomain(request.headers.get("host"));
+  const hostHeader = request.headers.get("host");
+  let sub = extractSubdomain(hostHeader);
+
+  /* ---------- Merchant custom domain → internal rewrite ---------- */
+  if (!sub && !isPlatformHost(hostHeader) && !pathname.startsWith("/api/")) {
+    sub = await resolveCustomDomain(hostHeader);
+  }
 
   /* ---------- Multi-tenant storefront on subdomain → internal rewrite ---------- */
   if (sub && !pathname.startsWith("/api/")) {

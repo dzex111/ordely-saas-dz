@@ -130,6 +130,8 @@ export const stores = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     publicId: text("public_id").unique(), // merchant-facing ID (ORD-XXXXXX), given to the admin
+    customDomain: text("custom_domain"), // PRO+: merchant-owned hostname (null = none), unique enforced by DB constraint below
+    customDomainStatus: text("custom_domain_status").notNull().default("none"), // none | pending | active
     subdomain: text("subdomain").notNull().unique(),
     name: text("name").notNull(),
     tagline: text("tagline").notNull().default(""),
