@@ -213,7 +213,7 @@ export async function getOwnedStore(): Promise<Store | null> {
 }
 
 /** All stores the user can access (owned first, then member), for the switcher. */
-export async function getAccessibleStores(): Promise<Store[]> {
+export async function getAccessibleStores(): Promise<{ store: Store; isOwner: boolean }[]> {
   const user = await getCurrentUser();
   if (!user) return [];
   const [owned, memberships] = await Promise.all([
@@ -226,7 +226,7 @@ export async function getAccessibleStores(): Promise<Store[]> {
       memberships.map((m) => db.query.stores.findFirst({ where: eq(stores.id, m.storeId) })),
     )
   ).filter((s): s is Store => !!s && !ownedIds.has(s.id));
-  return [...owned, ...memberStores];
+  return [...owned.map((store) => ({ store, isOwner: true })), ...memberStores.map((store) => ({ store, isOwner: false }))];
 }
 
 /** Dashboard guard: needs a user AND a store; otherwise routes to the right step. */

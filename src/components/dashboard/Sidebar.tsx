@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { LayoutDashboard, ShoppingBag, Package, Users, Palette, Settings, CreditCard, ExternalLink, UsersRound, ArrowLeftRight } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, Package, Users, Palette, Settings, CreditCard, ExternalLink, UsersRound, ArrowLeftRight, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { setActiveStoreAction } from "@/lib/actions/team";
 import type { TeamAction } from "@/lib/team";
@@ -28,6 +28,7 @@ export function Sidebar({
   plan,
   allowed,
   showTeam,
+  showCreateStore,
   stores,
   currentStoreId,
 }: {
@@ -37,6 +38,7 @@ export function Sidebar({
   plan: string;
   allowed: TeamAction[];
   showTeam: boolean;
+  showCreateStore: boolean;
   stores: SidebarStore[];
   currentStoreId: string;
 }) {
@@ -73,9 +75,16 @@ export function Sidebar({
           )}
           <div className="mt-1 flex items-center justify-between">
             <span className="rounded-md bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-600">{plan}</span>
-            <a href={storeHref} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-900">
-              Voir <ExternalLink className="h-3 w-3" />
-            </a>
+            <span className="flex items-center gap-1">
+              {showCreateStore && (
+                <Link href="/onboarding" title="Créer une boutique" aria-label="Créer une boutique" className="rounded-md p-1 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-900">
+                  <Plus className="h-3.5 w-3.5" />
+                </Link>
+              )}
+              <a href={storeHref} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-900">
+                Voir <ExternalLink className="h-3 w-3" />
+              </a>
+            </span>
           </div>
         </div>
       </div>

@@ -29,7 +29,10 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   const can = (a: TeamAction) => canDo(role, a);
   const allowed: TeamAction[] = (["manageAppearance", "manageSettings", "manageBilling", "manageProducts", "manageOrders"] as const).filter(can);
   const showTeam = role === "owner" && plan.flags.teamManagement;
-  const stores = (await getAccessibleStores()).map((s) => ({ id: s.id, name: s.name, subdomain: s.subdomain }));
+  const accessible = await getAccessibleStores();
+  const ownedCount = accessible.filter((a) => a.isOwner).length;
+  const showCreateStore = ownedCount === 0 || plan.limits.stores > ownedCount;
+  const stores = accessible.map((a) => ({ id: a.store.id, name: a.store.name, subdomain: a.store.subdomain }));
   const [[{ value: pendingCount }], [{ value: productCount }], stored, [{ value: unread }]] = await Promise.all([
     db.select({ value: count() }).from(orders).where(and(eq(orders.storeId, store.id), eq(orders.status, "pending"))),
     db.select({ value: count() }).from(products).where(eq(products.storeId, store.id)),
@@ -54,7 +57,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     <div className="min-h-dvh bg-paper text-ink">
       <div className="mx-auto flex max-w-[1400px] flex-col md:flex-row">
         <div className="border-b border-zinc-200 md:sticky md:top-0 md:h-dvh md:border-b-0 md:border-r">
-          <Sidebar storeName={store.name} storeHref={storeUrl(store.subdomain)} pendingCount={pendingCount} plan={plan.name} allowed={allowed} showTeam={showTeam} stores={stores} currentStoreId={store.id} />
+          <Sidebar storeName={store.name} storeHref={storeUrl(store.subdomain)} pendingCount={pendingCount} plan={plan.name} allowed={allowed} showTeam={showTeam} showCreateStore={showCreateStore} stores={stores} currentStoreId={store.id} />
         </div>
         <div className="min-w-0 flex-1">
           <header className="flex items-center gap-3 border-b border-zinc-200 bg-white/60 px-4 py-2.5 backdrop-blur md:px-6">
