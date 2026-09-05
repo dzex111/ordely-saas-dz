@@ -10,10 +10,15 @@ import { CouponsPanel } from "@/components/dashboard/CouponsPanel";
 export default async function CouponsPage() {
   const { store, user } = await requireStore();
   if (await denyUnless(store, user, "manageProducts")) redirect("/dashboard");
+  
+  // TEMPORARILY HIDDEN FOR TESTING - SECTION DISABLED
+  return null;
+  
+  /*
   const rows = await db.query.coupons.findMany({ where: eq(coupons.storeId, store.id), orderBy: [desc(coupons.createdAt)] });
   return (
     <>
-      <PageHeader title="Codes promo" description="Réductions en % ou montant fixe, avec fenêtre de validité et limite d’usages." />
+      <PageHeader title="Codes promo" description="Réductions en % ou montant fixe, avec fenêtre de validité et limite d'usages." />
       <CouponsPanel
         rows={rows.map((c) => ({
           id: c.id,
@@ -30,4 +35,5 @@ export default async function CouponsPage() {
       />
     </>
   );
+  */
 }

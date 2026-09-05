@@ -1,10 +1,4 @@
-﻿node_modules
-.next
-.env
-.env.local
-*.log
-dist
-.vercel
-.env*
-
-tsconfig.tsbuildinfo
+```ts
+// No build artifacts, dependency directories, or temporary files detected in changes
+// Only source code (.tsx) was modified
+```
