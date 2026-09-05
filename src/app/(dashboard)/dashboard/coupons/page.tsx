@@ -10,11 +10,7 @@ import { CouponsPanel } from "@/components/dashboard/CouponsPanel";
 export default async function CouponsPage() {
   const { store, user } = await requireStore();
   if (await denyUnless(store, user, "manageProducts")) redirect("/dashboard");
-  
-  // TEMPORARILY HIDDEN FOR TESTING - SECTION DISABLED
-  return null;
-  
-  /*
+
   const rows = await db.query.coupons.findMany({ where: eq(coupons.storeId, store.id), orderBy: [desc(coupons.createdAt)] });
   return (
     <>
@@ -35,5 +31,4 @@ export default async function CouponsPage() {
       />
     </>
   );
-  */
 }
